@@ -544,6 +544,11 @@ void FindUserLevels(void)
 
     XCONTENT_FIND_DATA Finddata;
 
+#ifdef _XBOX360
+    // Downloaded-content enumeration uses OG DLC APIs (XFindFirstContent);
+    // deferred to the XContent rewrite (M7). Shipped + user levels on disk
+    // still enumerate above.
+#else
     ////////////////////////////////////////////////////////////
     // Load in the downloaded levels
     //
@@ -609,6 +614,7 @@ void FindUserLevels(void)
 
         XFindClose(handle);
     }
+#endif // _XBOX360 (downloaded-level enumeration deferred)
 
     
     // alloc user LEVELINFO structure

@@ -12,6 +12,10 @@
 // XSession-based task rewrite (M3.4/M7).
 typedef void *XONLINETASK_HANDLE;
 
+// OG user record removed on 360; pointer-only uses keep parsing until the
+// Live identity rewrite.
+struct XONLINE_USER;
+
 //--- Matchmaking attributes (OG xonline.h shape, inferred from usage) ---
 #ifndef X_ATTRIBUTE_DATATYPE_INTEGER
 #define X_ATTRIBUTE_DATATYPE_INTEGER 0x00100000

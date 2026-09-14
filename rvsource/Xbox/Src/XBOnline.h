@@ -9,6 +9,9 @@
 #define XBONLINE_H
 
 #include <xonline.h>
+#ifdef _XBOX360
+#include "../../../rv360/rv360_online_stub.h"
+#endif
 
 
 // The task handle for XOnline API
