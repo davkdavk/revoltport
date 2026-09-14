@@ -312,7 +312,7 @@ void FlushOneBucketTEX0(BUCKET_TEX0 *bucket, long clip)
 //$END_REMOVAL
 
     SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, FALSE);
-    DRAW_PRIM_INDEX(D3DPT_TRIANGLELIST, FVF_TEX0, bucket->Verts, (DWORD)(bucket->CurrentVerts - bucket->Verts), bucket->Index, (DWORD)(bucket->CurrentIndex - bucket->Index), flag);
+    DRAW_PRIM_INDEX(D3DPT_TRIANGLELIST, FVF_TEX0, bucket->Verts, (DWORD)(bucket->CurrentVerts - bucket->Verts), bucket->Index, (DWORD)(bucket->CurrentIndex - bucket->Index), 0);
     SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, TRUE);
 
     //$CMP_NOTE: set 'curr' values back to start of the arrays
@@ -333,7 +333,7 @@ void FlushOneBucketTEX1(BUCKET_TEX1 *bucket, long clip)
 //    else flag = D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTCLIP;
 //$END_REMOVAL
 
-    DRAW_PRIM_INDEX(D3DPT_TRIANGLELIST, FVF_TEX1, bucket->Verts, (DWORD)(bucket->CurrentVerts - bucket->Verts), bucket->Index, (DWORD)(bucket->CurrentIndex - bucket->Index), flag);
+    DRAW_PRIM_INDEX(D3DPT_TRIANGLELIST, FVF_TEX1, bucket->Verts, (DWORD)(bucket->CurrentVerts - bucket->Verts), bucket->Index, (DWORD)(bucket->CurrentIndex - bucket->Index), 0);
 
     //$CMP_NOTE: set 'curr' values back to start of the arrays
     bucket->CurrentIndex = bucket->Index;
@@ -353,7 +353,7 @@ void FlushOneBucketEnv(BUCKET_ENV *bucket, long clip)
 //    else flag = D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTCLIP;
 //$END_REMOVAL
 
-    DRAW_PRIM_INDEX(D3DPT_TRIANGLELIST, FVF_TEX1, bucket->Verts, (DWORD)(bucket->CurrentVerts - bucket->Verts), bucket->Index, (DWORD)(bucket->CurrentIndex - bucket->Index), flag);
+    DRAW_PRIM_INDEX(D3DPT_TRIANGLELIST, FVF_TEX1, bucket->Verts, (DWORD)(bucket->CurrentVerts - bucket->Verts), bucket->Index, (DWORD)(bucket->CurrentIndex - bucket->Index), 0);
 
     //$CMP_NOTE: set 'curr' values back to start of the arrays
     bucket->CurrentIndex = bucket->Index;
@@ -650,12 +650,12 @@ void DrawSemiList(void)
         if (poly->Tpage == -1)
         {
             SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, FALSE);
-            DRAW_PRIM(D3DPT_TRIANGLEFAN, FVF_TEX0, poly->VertsRGB, poly->VertNum, poly->DrawFlag);
+            DRAW_PRIM(D3DPT_TRIANGLEFAN, FVF_TEX0, poly->VertsRGB, poly->VertNum, 0);
             SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, TRUE);
         }
         else
         {
-            DRAW_PRIM(D3DPT_TRIANGLEFAN, FVF_TEX1, poly->Verts, poly->VertNum, poly->DrawFlag);
+            DRAW_PRIM(D3DPT_TRIANGLEFAN, FVF_TEX1, poly->Verts, poly->VertNum, 0);
         }
     }
 
@@ -1398,6 +1398,28 @@ BOOL FreeBitmap(D3DTexture* pBitmap)
 //}
 BOOL BlitBitmap(D3DTexture* pBitmap)
 {
+#ifdef _XBOX360
+    // Shareware splash blit via the upload path. Fixed-function combiner
+    // setup and QUADLIST do not exist on 360; the transformed shader
+    // performs tex*diffuse. UVs are normalized (OG used texel units).
+    struct RV360_BLIT_VERT { float x, y, z, rhw; DWORD color; DWORD specular; float tu, tv; };
+    RV360_BLIT_VERT v[6];
+    const float x0 = -0.5f, y0 = -0.5f, x1 = 640.0f - 0.5f, y1 = 480.0f - 0.5f;
+    v[0].x = x0; v[0].y = y0; v[0].tu = 0.0f; v[0].tv = 0.0f;
+    v[1].x = x1; v[1].y = y0; v[1].tu = 1.0f; v[1].tv = 0.0f;
+    v[2].x = x1; v[2].y = y1; v[2].tu = 1.0f; v[2].tv = 1.0f;
+    v[3].x = x0; v[3].y = y0; v[3].tu = 0.0f; v[3].tv = 0.0f;
+    v[4].x = x1; v[4].y = y1; v[4].tu = 1.0f; v[4].tv = 1.0f;
+    v[5].x = x0; v[5].y = y1; v[5].tu = 0.0f; v[5].tv = 1.0f;
+    for (int i = 0; i < 6; i++) {
+        v[i].z = 0.0f; v[i].rhw = 1.0f;
+        v[i].color = 0xFFFFFFFF; v[i].specular = 0;
+    }
+    rv360_set_texture(0, pBitmap);
+    rv360_set_sampler_state(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+    rv360_set_sampler_state(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+    return rv360_draw_vertices_up(D3DPT_TRIANGLELIST, v, sizeof(v[0]), 6) == S_OK;
+#else
     struct VERTEX { D3DXVECTOR4 p; FLOAT tu, tv; };
     VERTEX v[4];
     v[0].p = D3DXVECTOR4(   0 - 0.5f,   0 - 0.5f, 0, 0 );  v[0].tu =   0;  v[0].tv =   0;
@@ -1422,6 +1444,7 @@ BOOL BlitBitmap(D3DTexture* pBitmap)
     D3DDevice_DrawVerticesUP( D3DPT_QUADLIST, 1, v, sizeof(VERTEX) );
 
     return TRUE; // success
+#endif // _XBOX360 (upload-path blit above)
 }
 //$END_MODIFICATIONS
 

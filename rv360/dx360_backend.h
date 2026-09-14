@@ -31,6 +31,7 @@ void rv360_init_renderer(D3DDevice *device, DWORD width, DWORD height);
 void rv360_shutdown_renderer(void);
 void rv360_clear(DWORD color, DWORD flags);
 void rv360_present(void);
+void rv360_set_fog_color(DWORD color);
 HRESULT rv360_load_texture_file(const char *filename, UINT width, UINT height,
                                 UINT mip_levels, D3DTexture **texture);
 void rv360_set_sampler_linear(DWORD stage, BOOL mipmapped, BOOL anisotropic);

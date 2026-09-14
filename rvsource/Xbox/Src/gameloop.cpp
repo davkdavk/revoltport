@@ -482,6 +482,9 @@ void GLP_GameLoop(void)
 //$ADDITION
     // Pump any pending XOnline tasks
     OnlineTasks_Continue();
+#ifdef _XBOX360
+    // Live invite/friend notifications deferred with Live (M3.4/M7).
+#else
     if( IsLoggedIn(0) )
     {
         // BUGBUG: Should make this flash for a couple seconds, then disappear
@@ -495,6 +498,7 @@ void GLP_GameLoop(void)
             DrawScreenSpaceQuad( 520, 420, g_pFriendReqReceivedTexture );
         }
     }
+#endif
 //$END_ADDITION
 
 // texture animations

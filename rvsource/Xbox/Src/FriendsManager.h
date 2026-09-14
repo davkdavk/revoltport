@@ -13,6 +13,9 @@
 
 #include <xtl.h>
 #include <xonline.h>
+#ifdef _XBOX360
+#include "../../../rv360/rv360_online_stub.h"
+#endif
 #include <vector>
 
 #if _DEBUG

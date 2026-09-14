@@ -5,6 +5,26 @@
 
 D3DDevice *g_rv360_device = NULL;
 
+static DWORD g_rv360_fog_color = 0xFF000000;
+
+void rv360_set_fog_color(DWORD color)
+{
+    g_rv360_fog_color = color;
+}
+
+static void rv360_push_fog_constant(void)
+{
+    // Fog factor arrives in vertex specular alpha (game bakes it on CPU);
+    // fog color arrives here from FOG_COLOR and is consumed by the
+    // transformed pixel shader's c0 constant.
+    float fog[4];
+    fog[0] = (float)(g_rv360_fog_color & 0xFF) / 255.0f;
+    fog[1] = (float)((g_rv360_fog_color >> 8) & 0xFF) / 255.0f;
+    fog[2] = (float)((g_rv360_fog_color >> 16) & 0xFF) / 255.0f;
+    fog[3] = (float)((g_rv360_fog_color >> 24) & 0xFF) / 255.0f;
+    D3DDevice_SetPixelShaderConstantF(g_rv360_device, 0, fog, 1);
+}
+
 static D3DVertexBuffer *g_rv360_vertex_buffer = NULL;
 static D3DIndexBuffer *g_rv360_index_buffer = NULL;
 static D3DVertexDeclaration *g_rv360_vertex_declaration = NULL;
@@ -148,6 +168,7 @@ HRESULT rv360_draw_vertices_up(D3DPRIMITIVETYPE primitive,
 
     D3DDevice_SetStreamSource(g_rv360_device, 0, g_rv360_vertex_buffer,
                               0, stride, 0);
+    rv360_push_fog_constant();
     D3DDevice_DrawVertices(g_rv360_device, primitive, 0, vertex_count);
     return S_OK;
 }
@@ -180,6 +201,7 @@ HRESULT rv360_draw_indexed_vertices_up(D3DPRIMITIVETYPE primitive,
     memcpy(destination, indices, bytes);
     D3DIndexBuffer_Unlock(g_rv360_index_buffer);
     D3DDevice_SetIndices(g_rv360_device, g_rv360_index_buffer);
+    rv360_push_fog_constant();
     D3DDevice_DrawIndexedVertices(g_rv360_device, primitive, 0, 0, index_count);
     return S_OK;
 }

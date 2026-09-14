@@ -88,4 +88,17 @@ typedef struct {
     DWORD dwDescriptionIndex;
 } XONLINEOFFERING_ENUM_PARAMS;
 
+//--- Friends/presence types (OG Live friends API removed on 360) ---
+// Pointer-only declarations keep dependents parsing; the friends/presence
+// rewrite is deferred with Live (M3.4/M7). XONLINE_FRIEND itself still exists
+// in the 360 XDK (different shape), so only declare what is missing.
+struct XONLINE_MUTELISTUSER;
+struct XONLINE_ACCEPTED_GAMEINVITE;
+typedef DWORD XONLINE_REQUEST_ANSWER_TYPE;
+typedef DWORD XONLINE_GAMEINVITE_ANSWER_TYPE;
+typedef DWORD XONLINE_FEEDBACK_TYPE;
+#ifndef XONLINE_MAX_LOGON_USERS
+#define XONLINE_MAX_LOGON_USERS 4
+#endif
+
 #endif

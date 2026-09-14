@@ -586,6 +586,36 @@ extern short RenderZcmp, RenderZwrite, RenderZbuffer;
     rv360_set_sampler_state(0, D3DSAMP_MIPFILTER, DxState.MipMap); \
     rv360_set_sampler_state(1, D3DSAMP_MIPFILTER, DxState.MipMap); \
 }
+// Fixed-function states removed on 360: fog is baked into vertex specular
+// alpha by the game and applied by the transformed pixel shader; specular
+// highlights, dithering, wireframe fill, antialias sort-independence, and
+// color-key are shader/cooker concerns, not render states.
+#undef FOG_ON
+#define FOG_ON() { RenderFog = TRUE; }
+#undef FOG_OFF
+#define FOG_OFF() { RenderFog = FALSE; }
+#undef FOG_COLOR
+#define FOG_COLOR(_c) { rv360_set_fog_color(_c); }
+#undef SPECULAR_ON
+#define SPECULAR_ON() { }
+#undef SPECULAR_OFF
+#define SPECULAR_OFF() { }
+#undef DITHER_ON
+#define DITHER_ON() { }
+#undef DITHER_OFF
+#define DITHER_OFF() { }
+#undef WIREFRAME_ON
+#define WIREFRAME_ON() { }
+#undef WIREFRAME_OFF
+#define WIREFRAME_OFF() { }
+#undef ANTIALIAS_ON
+#define ANTIALIAS_ON() { SET_RENDER_STATE(D3DRS_MULTISAMPLEANTIALIAS, TRUE); }
+#undef ANTIALIAS_OFF
+#define ANTIALIAS_OFF() { SET_RENDER_STATE(D3DRS_MULTISAMPLEANTIALIAS, FALSE); }
+#undef SORT_INDEPENDENT_ON
+#define SORT_INDEPENDENT_ON() { }
+#undef SORT_INDEPENDENT_OFF
+#define SORT_INDEPENDENT_OFF() { }
 #endif
 
 #endif // DX_H
