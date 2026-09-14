@@ -87,7 +87,18 @@ inline void XGMatrixMultiply(XGMATRIX *pOut, const XGMATRIX *pA,
 // for the world GPU effect constants until the effect rewrite lands.
 struct XGVECTOR4 {
     float x, y, z, w;
+    XGVECTOR4() {}
+    XGVECTOR4(float _x, float _y, float _z, float _w)
+        : x(_x), y(_y), z(_z), w(_w) {}
 };
+
+// OG depth-buffer max constant (D24S8) used to scale the software projection.
+#ifndef D3DZ_MAX_D24S8
+#define D3DZ_MAX_D24S8 ((FLOAT)0xFFFFFF)
+#endif
+
+// OG viewport alias lives in Xbox/Src/windows.h (D3DVIEWPORT2->D3DVIEWPORT9
+// under _XBOX360); not repeated here to avoid macro/typedef collisions.
 
 // PIX debug markers for xbxray-style tracing are not wired yet.
 #define D3DDevice_SetDebugMarker(_m) ((void)0)

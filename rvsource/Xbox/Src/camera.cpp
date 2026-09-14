@@ -6,6 +6,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 #include "revolt.h"
+#ifdef _XBOX360
+#include "../../../rv360/dx360_backend.h"
+#endif
 #ifdef _N64
  #include "gfx.h"
 #endif
@@ -1758,11 +1761,15 @@ void SetViewport(REAL x, REAL y, REAL xsize, REAL ysize, REAL pers)
 //$MODIFIED
 //    r = D3Dviewport->SetViewport2(&vd);
 //    if (r != DD_OK)
+#ifdef _XBOX360
+    D3DDevice_SetViewport(g_rv360_device, &vd);
+#else
+    D3DDevice_SetViewport( &vd );
+#endif
 //    {
 //        ErrorDX(r, "Can't set viewport");
 //        QuitGame();
 //    }
-    D3DDevice_SetViewport( &vd );
 //$END_MODIFICATIONS
 }
 #endif
@@ -1917,7 +1924,11 @@ void SetProjMatrix(REAL n, REAL f, REAL fov)
 
 //$MODIFIED
 //    D3Ddevice->SetTransform(D3DTRANSFORMSTATE_PROJECTION, &mat);
+#ifdef _XBOX360
+    (void)mat; // Projection is consumed via g_Proj/software path on 360.
+#else
     D3Ddevice->SetTransform(D3DTS_PROJECTION, &mat);
+#endif
 //$END_MODIFICATIONS
 } 
 #endif

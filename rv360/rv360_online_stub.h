@@ -8,6 +8,10 @@
 
 #include <xtl.h>
 
+// OG task handles are opaque; void* keeps call sites parsing until the
+// XSession-based task rewrite (M3.4/M7).
+typedef void *XONLINETASK_HANDLE;
+
 //--- Matchmaking attributes (OG xonline.h shape, inferred from usage) ---
 #ifndef X_ATTRIBUTE_DATATYPE_INTEGER
 #define X_ATTRIBUTE_DATATYPE_INTEGER 0x00100000

@@ -37,6 +37,7 @@ const FLOAT XBINPUT_DEADZONE = 0.24f;
 //-----------------------------------------------------------------------------
 DWORD GetControllerType( HANDLE hDevice )
 {
+#ifndef _XBOX360
     // Determine the controller type, by checking the device capabilities
     XINPUT_CAPABILITIES caps;
     XInputGetCapabilities( hDevice, &caps );
@@ -62,6 +63,10 @@ DWORD GetControllerType( HANDLE hDevice )
     }
 
     return XBINPUT_CONTROLLER_UNSUPPORTED;
+#else
+    (void)hDevice;
+    return XBINPUT_CONTROLLER_GAMEPAD;
+#endif
 }
 
 
@@ -73,8 +78,16 @@ DWORD GetControllerType( HANDLE hDevice )
 //-----------------------------------------------------------------------------
 HRESULT XBInput_InitControllers()
 {
+#ifdef _XBOX360
+    // No device handles on 360: controllers are polled by user index.
+    // Assume gamepads; presence is detected per-poll by XInputGetState.
+    ZeroMemory(g_Controllers, sizeof(g_Controllers));
+    for (DWORD i = 0; i < 4; i++)
+        g_Controllers[i].dwDeviceType = XBINPUT_CONTROLLER_GAMEPAD;
+    return S_OK;
+#else
     // Initialize core peripheral port support. Note: If these parameters
-    // are 0 and NULL, respectively, then the default number and types of 
+    // are 0 and NULL, respectively, then the default number and types of
     // controllers will be initialized.
     XInitDevices( 0, NULL );
 
@@ -103,6 +116,7 @@ HRESULT XBInput_InitControllers()
     // Return OK for now. Could return FAIL, to detect no controllers are
     // inserted, or maybe return a DWORD of the # of inserted controllers
     return S_OK;
+#endif // _XBOX360 (user-index init above)
 }
 
 
@@ -114,6 +128,67 @@ HRESULT XBInput_InitControllers()
 //-----------------------------------------------------------------------------
 HRESULT XBInput_ReadControllers()
 {
+#ifdef _XBOX360
+    // User-index polling; map 360 state into the OG-shaped controller struct
+    // so menu/game lookups (bAnalogButtons indices, thumbs, wButtons DPAD)
+    // work unchanged.
+    for (DWORD i = 0; i < 4; i++)
+    {
+        XBINPUT_CONTROLLER *pController = &g_Controllers[i];
+        XINPUT_STATE state;
+        ZeroMemory(&state, sizeof(state));
+        if (XInputGetState(i, &state) != ERROR_SUCCESS)
+            continue;
+        pController->dwPacketNumber = state.dwPacketNumber;
+        pController->wButtons = state.Gamepad.wButtons;
+        pController->bAnalogButtons[XINPUT_GAMEPAD_A] =
+            (state.Gamepad.wButtons & 0x1000) ? 255 : 0; // XINPUT_GAMEPAD_A
+        pController->bAnalogButtons[XINPUT_GAMEPAD_B] =
+            (state.Gamepad.wButtons & 0x2000) ? 255 : 0; // XINPUT_GAMEPAD_B
+        pController->bAnalogButtons[XINPUT_GAMEPAD_X] =
+            (state.Gamepad.wButtons & 0x4000) ? 255 : 0; // XINPUT_GAMEPAD_X
+        pController->bAnalogButtons[XINPUT_GAMEPAD_Y] =
+            (state.Gamepad.wButtons & 0x8000) ? 255 : 0; // XINPUT_GAMEPAD_Y
+        pController->bAnalogButtons[XINPUT_GAMEPAD_BLACK] =
+            (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) ? 255 : 0;
+        pController->bAnalogButtons[XINPUT_GAMEPAD_WHITE] =
+            (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) ? 255 : 0;
+        pController->bAnalogButtons[XINPUT_GAMEPAD_LEFT_TRIGGER] =
+            state.Gamepad.bLeftTrigger;
+        pController->bAnalogButtons[XINPUT_GAMEPAD_RIGHT_TRIGGER] =
+            state.Gamepad.bRightTrigger;
+        pController->sThumbLX = state.Gamepad.sThumbLX;
+        pController->sThumbLY = state.Gamepad.sThumbLY;
+        pController->sThumbRX = state.Gamepad.sThumbRX;
+        pController->sThumbRY = state.Gamepad.sThumbRY;
+        FLOAT fX1 = (pController->sThumbLX + 0.5f) / 32767.5f;
+        pController->fX1 = (fX1 >= 0.0f ? 1.0f : -1.0f) *
+            max(0.0f, (fabsf(fX1) - XBINPUT_DEADZONE) / (1.0f - XBINPUT_DEADZONE));
+        FLOAT fY1 = (pController->sThumbLY + 0.5f) / 32767.5f;
+        pController->fY1 = (fY1 >= 0.0f ? 1.0f : -1.0f) *
+            max(0.0f, (fabsf(fY1) - XBINPUT_DEADZONE) / (1.0f - XBINPUT_DEADZONE));
+        FLOAT fX2 = (pController->sThumbRX + 0.5f) / 32767.5f;
+        pController->fX2 = (fX2 >= 0.0f ? 1.0f : -1.0f) *
+            max(0.0f, (fabsf(fX2) - XBINPUT_DEADZONE) / (1.0f - XBINPUT_DEADZONE));
+        FLOAT fY2 = (pController->sThumbRY + 0.5f) / 32767.5f;
+        pController->fY2 = (fY2 >= 0.0f ? 1.0f : -1.0f) *
+            max(0.0f, (fabsf(fY2) - XBINPUT_DEADZONE) / (1.0f - XBINPUT_DEADZONE));
+        pController->wPressedButtons =
+            (pController->wLastButtons ^ pController->wButtons) & pController->wButtons;
+        pController->wLastButtons = pController->wButtons;
+        for (DWORD b = 0; b < 8; b++)
+        {
+            BOOL bPressed =
+                (pController->bAnalogButtons[b] > XINPUT_GAMEPAD_MAX_CROSSTALK);
+            if (bPressed)
+                pController->bPressedAnalogButtons[b] = !pController->bLastAnalogButtons[b];
+            else
+                pController->bPressedAnalogButtons[b] = FALSE;
+            pController->bLastAnalogButtons[b] = bPressed;
+        }
+    }
+    return S_OK;
+#else
     // TCR 3-21 Controller Discovery
     // Get status about gamepad insertions and removals. Note that, in order
     // to not miss devices, we will check for removed device BEFORE checking
@@ -211,17 +286,19 @@ HRESULT XBInput_ReadControllers()
                     g_pMenuHeader->ClearMenuHeader();
                     g_InGameMenuStateEngine.MakeActive(NULL);
                 }
-                g_ControllerRemoved.Begin( i );
+            g_ControllerRemoved.Begin( i );
             }
         }
     }
 
     return S_OK;
+#endif // _XBOX360 (user-index polling above)
 }
 
 
-
-
+//-----------------------------------------------------------------------------
+// Name: XBInput_GetInput()
+// Desc:
 //-----------------------------------------------------------------------------
 // Name: XBInput_GetInput()
 // Desc: 

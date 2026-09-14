@@ -10,6 +10,55 @@
 
 #include <xtl.h>
 
+#ifdef _XBOX360
+// 360 XInput removed the OG analog-button array model: A/B/X/Y became
+// wButtons bits, WHITE/BLACK became shoulders, triggers became bytes.
+// Game code uses these names ONLY as bAnalogButtons[] indices (verified: no
+// wButtons & A/B/X/Y/WHITE/BLACK uses), so restore index semantics here.
+// The 360 fill in XBInput_ReadControllers maps real hardware into slots.
+#ifdef XINPUT_GAMEPAD_A
+#undef XINPUT_GAMEPAD_A
+#endif
+#ifdef XINPUT_GAMEPAD_B
+#undef XINPUT_GAMEPAD_B
+#endif
+#ifdef XINPUT_GAMEPAD_X
+#undef XINPUT_GAMEPAD_X
+#endif
+#ifdef XINPUT_GAMEPAD_Y
+#undef XINPUT_GAMEPAD_Y
+#endif
+#define XINPUT_GAMEPAD_A 0
+#define XINPUT_GAMEPAD_B 1
+#define XINPUT_GAMEPAD_X 2
+#define XINPUT_GAMEPAD_Y 3
+#define XINPUT_GAMEPAD_BLACK 4
+#define XINPUT_GAMEPAD_WHITE 5
+#define XINPUT_GAMEPAD_LEFT_TRIGGER 6
+#define XINPUT_GAMEPAD_RIGHT_TRIGGER 7
+#ifndef XINPUT_GAMEPAD_MAX_CROSSTALK
+#define XINPUT_GAMEPAD_MAX_CROSSTALK 30
+#endif
+// OG debug-flight vector removed with xgraphics; minimal math for the
+// non-shipping debug flight path in input.cpp.
+struct XGVECTOR3 {
+    float x, y, z;
+    XGVECTOR3() {}
+    XGVECTOR3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
+    XGVECTOR3(const float *v) : x(v[0]), y(v[1]), z(v[2]) {}
+};
+inline XGVECTOR3 operator+(const XGVECTOR3 &a, const XGVECTOR3 &b)
+{ return XGVECTOR3(a.x + b.x, a.y + b.y, a.z + b.z); }
+inline XGVECTOR3 operator-(const XGVECTOR3 &a, const XGVECTOR3 &b)
+{ return XGVECTOR3(a.x - b.x, a.y - b.y, a.z - b.z); }
+inline XGVECTOR3 operator*(float s, const XGVECTOR3 &v)
+{ return XGVECTOR3(s * v.x, s * v.y, s * v.z); }
+inline XGVECTOR3 &operator+=(XGVECTOR3 &a, const XGVECTOR3 &b)
+{ a.x += b.x; a.y += b.y; a.z += b.z; return a; }
+inline XGVECTOR3 &operator-=(XGVECTOR3 &a, const XGVECTOR3 &b)
+{ a.x -= b.x; a.y -= b.y; a.z -= b.z; return a; }
+#endif
+
 
 
 

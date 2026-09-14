@@ -23,6 +23,10 @@
   #define DDGAMMARAMP          D3DGAMMARAMP
 //$REMOVED   #define IDirect3DViewport3   D3DVIEWPORT8
   #define D3DVIEWPORT2         D3DVIEWPORT8
+  #ifdef _XBOX360
+    #undef D3DVIEWPORT2
+    #define D3DVIEWPORT2       D3DVIEWPORT9
+  #endif
 
   #define XBOX_UNUSED_PARAM    NULL
   
