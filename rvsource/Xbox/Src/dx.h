@@ -17,6 +17,20 @@
 // exposes D3DDevice; this alias is temporary while dx.cpp moves to explicit
 // D3DDevice_* calls.
 typedef D3DDevice IDirect3DDevice3;
+// FVF codes and draw-prim flags are consumed by DRAW_PRIM only as opaque
+// arguments on 360 (the backend uploads raw strides). Define them so call
+// sites parse; they carry no meaning to the backend.
+#ifndef D3DFVF_XYZRHW
+#define D3DFVF_XYZRHW 0
+#define D3DFVF_XYZ 0
+#define D3DFVF_DIFFUSE 0
+#define D3DFVF_SPECULAR 0
+#define D3DFVF_TEX0 0
+#define D3DFVF_TEX1 0
+#define D3DFVF_TEX2 0
+#define D3DDP_DONOTUPDATEEXTENTS 0
+#define D3DDP_DONOTCLIP 0
+#endif
 #endif
 
 //$MODIFIED: changed D3DRENDERSTATE_* constants to D3DRS_*
@@ -41,11 +55,19 @@ enum {
 
 // render state macros
 
+#ifdef _XBOX360
+#define SET_RENDER_STATE(_s, _v) \
+{ \
+    rv360_set_render_state((_s), (_v)); \
+    RenderStateChange++; \
+}
+#else
 #define SET_RENDER_STATE(_s, _v) \
 { \
     D3DDevice_SetRenderState((_s), (_v)); \
     RenderStateChange++; \
 }
+#endif
 
 #define SET_STAGE_STATE(_t, _s, _v) \
 { \
@@ -53,11 +75,19 @@ enum {
     RenderStateChange++; \
 }
 
+#ifdef _XBOX360
+#define SET_TEXTURE(_t, _tex) \
+{ \
+    rv360_set_texture((_t), (_tex)); \
+    TextureStateChange++; \
+}
+#else
 #define SET_TEXTURE(_t, _tex) \
 { \
     D3DDevice_SetTexture((_t), (_tex)); \
     TextureStateChange++; \
 }
+#endif
 
 //$MODIFIED
 //#define DRAW_PRIM D3DDevice->DrawPrimitive
@@ -422,7 +452,11 @@ extern DX_STATE DxState;
 extern IDirect3DDevice3 *D3Ddevice;
 //$REMOVEDextern IDirect3DViewport3 *D3Dviewport;
 //$REMOVEDextern D3DDEVICEDESC D3Dcaps;
+#ifdef _XBOX360
+extern D3DFORMAT ZedBufferFormat;
+#else
 extern DDPIXELFORMAT ZedBufferFormat;
+#endif
 extern DWORD ScreenXsize;
 extern DWORD ScreenYsize;
 extern DWORD ScreenBpp;
@@ -439,6 +473,120 @@ extern DWORD BackgroundColor;
 extern int RenderTP, RenderTP2;
 extern short RenderFog, RenderBlend, RenderBlendSrc, RenderBlendDest;
 extern short RenderZcmp, RenderZwrite, RenderZbuffer;
+
+#ifdef _XBOX360
+// 360 sampler-state migration (M4.5): fixed-function texture-stage state has
+// no D3D9 equivalent. Sampler filtering/addressing moves to D3DSAMP_*;
+// combiner state (COLOROP/ALPHAOP/ARGS) is owned by the 360 pixel shader;
+// color-key textures must be recooked with alpha (deferred to M4.4).
+#undef MIPMAP_LODBIAS
+#define MIPMAP_LODBIAS(_n) \
+{ \
+    float _f = _n; \
+    rv360_set_sampler_state(0, D3DSAMP_MIPMAPLODBIAS, *(DWORD*)&_f); \
+    rv360_set_sampler_state(1, D3DSAMP_MIPMAPLODBIAS, *(DWORD*)&_f); \
+}
+#undef TEXTURE_ADDRESS
+#define TEXTURE_ADDRESS(_w) \
+{ \
+    rv360_set_sampler_state(0, D3DSAMP_ADDRESSU, _w); \
+    rv360_set_sampler_state(0, D3DSAMP_ADDRESSV, _w); \
+    rv360_set_sampler_state(0, D3DSAMP_ADDRESSW, _w); \
+    rv360_set_sampler_state(1, D3DSAMP_ADDRESSU, _w); \
+    rv360_set_sampler_state(1, D3DSAMP_ADDRESSV, _w); \
+    rv360_set_sampler_state(1, D3DSAMP_ADDRESSW, _w); \
+}
+#undef BLEND_OFF
+#define BLEND_OFF() \
+{ \
+    if (RenderBlend) \
+    { \
+        SET_RENDER_STATE(D3DRS_ALPHABLENDENABLE, FALSE); \
+        if (RenderBlend == 2) \
+        { \
+            SET_RENDER_STATE(D3DRS_ALPHAREF, AlphaRef); \
+        } \
+        RenderBlend = 0; \
+    } \
+}
+#undef BLEND_ON
+#define BLEND_ON() \
+{ \
+    if (RenderBlend != 1) \
+    { \
+        if (!RenderBlend) SET_RENDER_STATE(D3DRS_ALPHABLENDENABLE, TRUE); \
+        if (RenderBlend == 2) \
+        { \
+            SET_RENDER_STATE(D3DRS_ALPHAREF, AlphaRef); \
+        } \
+        RenderBlend = 1; \
+    } \
+}
+#undef BLEND_ALPHA
+#define BLEND_ALPHA() \
+{ \
+    if (RenderBlend != 2) \
+    { \
+        if (!RenderBlend) SET_RENDER_STATE(D3DRS_ALPHABLENDENABLE, TRUE); \
+        SET_RENDER_STATE(D3DRS_ALPHAREF, 0); \
+        RenderBlend = 2; \
+    } \
+}
+#undef COLORKEY_ON
+#define COLORKEY_ON() \
+{ \
+    (void)DxState.ColorKey; \
+}
+#undef COLORKEY_OFF
+#define COLORKEY_OFF() \
+{ \
+}
+#undef TEXTUREFILTER_OFF
+#define TEXTUREFILTER_OFF() \
+{ \
+    rv360_set_sampler_state(0, D3DSAMP_MINFILTER, D3DTEXF_POINT); \
+    rv360_set_sampler_state(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT); \
+    rv360_set_sampler_state(1, D3DSAMP_MINFILTER, D3DTEXF_POINT); \
+    rv360_set_sampler_state(1, D3DSAMP_MAGFILTER, D3DTEXF_POINT); \
+}
+#undef TEXTUREFILTER_ON
+#define TEXTUREFILTER_ON() \
+{ \
+    switch (DxState.TextureFilter) \
+    { \
+        case 0: \
+            rv360_set_sampler_state(0, D3DSAMP_MINFILTER, D3DTEXF_POINT); \
+            rv360_set_sampler_state(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT); \
+            rv360_set_sampler_state(1, D3DSAMP_MINFILTER, D3DTEXF_POINT); \
+            rv360_set_sampler_state(1, D3DSAMP_MAGFILTER, D3DTEXF_POINT); \
+            break; \
+        case 1: \
+            rv360_set_sampler_state(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR); \
+            rv360_set_sampler_state(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR); \
+            rv360_set_sampler_state(1, D3DSAMP_MINFILTER, D3DTEXF_LINEAR); \
+            rv360_set_sampler_state(1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR); \
+            break; \
+        case 2: \
+            rv360_set_sampler_state(0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC); \
+            rv360_set_sampler_state(0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC); \
+            rv360_set_sampler_state(1, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC); \
+            rv360_set_sampler_state(1, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC); \
+            break; \
+    } \
+}
+#undef MIPMAP_OFF
+#define MIPMAP_OFF() \
+{ \
+    rv360_set_sampler_state(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE); \
+    rv360_set_sampler_state(1, D3DSAMP_MIPFILTER, D3DTEXF_NONE); \
+}
+#undef MIPMAP_ON
+#define MIPMAP_ON() \
+{ \
+    rv360_set_sampler_state(0, D3DSAMP_MIPFILTER, DxState.MipMap); \
+    rv360_set_sampler_state(1, D3DSAMP_MIPFILTER, DxState.MipMap); \
+}
+#endif
 
 #endif // DX_H
 

@@ -9,6 +9,9 @@
 
 #include "revolt.h"
 #include "main.h"
+#ifdef _XBOX360
+#include "../../../rv360/audio360_backend.h"
+#endif
 #include "dx.h"
 #include "geom.h"
 #include "model.h"
@@ -342,6 +345,9 @@ void __cdecl main(void)
 //$REMOVED    HRESULT r;
 
 #ifndef XBOX_NOT_YET_IMPLEMENTED
+#ifdef _XBOX360
+// No command-line parsing on 360: fixed boot path (M7).
+#else
 // parse command line args
 
     for (i = 1 ; i < __argc ; i++)
@@ -535,6 +541,7 @@ void __cdecl main(void)
             continue;
         }
     }
+#endif // _XBOX360 command-line parsing
 #endif // ! XBOX_NOT_YET_IMPLEMENTED
 
 //$REMOVED
@@ -741,9 +748,13 @@ void __cdecl main(void)
 #endif    
 
     // Need a pointer to DSound - the sound bank
-    // creates one and holds on to it, but we 
+    // creates one and holds on to it, but we
     // can get one this way, too.  Ditto for the DSP
     // image desc
+    // Voice chat is deferred on 360 (XHV/GameChat rewrite, M7/Live).
+#ifdef _XBOX360
+    rv360_audio_init();
+#else
     LPDIRECTSOUND8 pDSound;
     DirectSoundCreate( NULL, &pDSound, NULL );
     extern LPDSEFFECTIMAGEDESC g_pDSPImageDesc;
@@ -771,6 +782,7 @@ void __cdecl main(void)
     }
 
     pDSound->Release();
+#endif // _XBOX360 voice init (XAudio2 path above)
 
 //$REMOVED
 //// check for legal IP
@@ -1461,6 +1473,7 @@ void SetupGame(void)
     // set steering deadzone / range?
 #ifdef _PC
   #ifndef XBOX_NOT_YET_IMPLEMENTED
+  #ifndef _XBOX360
     if (RegistrySettings.Joystick != -1)
     {
         if (KeyTable[KEY_LEFT].Type == KEY_TYPE_AXISNEG || KeyTable[KEY_LEFT].Type == KEY_TYPE_AXISPOS)
@@ -1469,6 +1482,7 @@ void SetupGame(void)
         if (KeyTable[KEY_RIGHT].Type == KEY_TYPE_AXISNEG || KeyTable[KEY_RIGHT].Type == KEY_TYPE_AXISPOS)
             SetAxisProperties(KeyTable[KEY_RIGHT].Index, RegistrySettings.SteeringDeadzone * 100, RegistrySettings.SteeringRange * 100);
     }
+  #endif // !_XBOX360 (DirectInput axis properties; 360 uses XInput)
   #endif // !XBOX_NOT_YET_IMPLEMENTED
 #endif
 

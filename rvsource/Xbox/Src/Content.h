@@ -9,6 +9,9 @@
 #define CONTENTDOWNLOAD_COMMON_H
 
 #include "XBOnline.h"
+#ifdef _XBOX360
+#include "../../../rv360/rv360_online_stub.h"
+#endif
 
 // we have DWORD, right?
 #define QWORD ULONGLONG

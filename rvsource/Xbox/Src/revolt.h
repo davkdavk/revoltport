@@ -59,6 +59,12 @@
 typedef void *XONLINETASK_HANDLE;
 #endif
 struct XONLINE_USER;
+// Offline-first 360 bring-up (M7): no command-line parsing, no DirectPlay
+// lobby, no voice init. Live/system-link comes back in M3.4/M7.
+#define XBOX_DISABLE_NETWORK 1
+#ifndef XGetPortCount
+#define XGetPortCount() 4
+#endif
 #endif
 
 // macros

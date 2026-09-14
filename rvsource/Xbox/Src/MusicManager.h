@@ -12,7 +12,24 @@
 #define MUSICMANAGER_H
 
 #include <xtl.h>
+#ifdef _XBOX360
+// WMA/DirectSound streaming engine is replaced by XAudio2/XMA (M5 remainder).
+// Forward declarations keep this header parseable; MusicManager.cpp gets its
+// own _XBOX360 branch when music streaming is ported.
+struct IDirectSoundStream;
+struct XWmaFileMediaObject;
+struct XMEDIAPACKET;
+// OG soundtrack-name limits came from the old audio headers; size the
+// deferred music members reasonably until the streaming port lands.
+#ifndef MAX_SOUNDTRACK_NAME
+#define MAX_SOUNDTRACK_NAME 128
+#endif
+#ifndef MAX_SONG_NAME
+#define MAX_SONG_NAME 128
+#endif
+#else
 #include <dsound.h>
+#endif
 
 // Packet size is set up to be 2048 samples
 // Samples are 16-bit and stereo

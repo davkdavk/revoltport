@@ -12,7 +12,18 @@
 #define VOICECOMMUNICATOR_H
 
 #include <xtl.h>
+#ifdef _XBOX360
+// Voice chat moves to XHV/GameChat on 360 (deferred with Live). Stub the OG
+// XVoice media-object types so dependents parse; the .cpp gets a real port.
+struct IXVoiceEncoder;
+struct IXVoiceDecoder;
+typedef IXVoiceEncoder *LPXVOICEENCODER;
+typedef IXVoiceDecoder *LPXVOICEDECODER;
+typedef DWORD XVOICE_MASK;
+struct XMEDIAPACKET;
+#else
 #include <xvoice.h>
+#endif
 #include <xonline.h>
 
 class CVoiceManager;

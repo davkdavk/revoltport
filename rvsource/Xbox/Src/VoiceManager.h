@@ -12,7 +12,22 @@
 #define VOICEMANAGER_H
 
 #include <xtl.h>
+#ifdef _XBOX360
+// Voice chat moves to XHV/GameChat on 360 (deferred with Live). Stub the OG
+// voice/DSound types so dependents parse; the .cpp gets a real port.
+struct IDirectSound8;
+struct IDirectSoundStream;
+struct DSEffectImageDesc;
+struct XMediaObject;
+typedef IDirectSound8 *LPDIRECTSOUND8;
+typedef IDirectSoundStream *LPDIRECTSOUNDSTREAM;
+typedef DSEffectImageDesc *LPDSEFFECTIMAGEDESC;
+struct IXVoiceDecoder;
+typedef IXVoiceDecoder *LPXVOICEDECODER;
+typedef DWORD XVOICE_MASK;
+#else
 #include <xvoice.h>
+#endif
 #include <xonline.h>
 #include "VoiceCommunicator.h"
 #include <vector>
