@@ -109,7 +109,10 @@ HRESULT rv360_audio_play_pcm16(const void *data, DWORD bytes,
     format.nAvgBytesPerSec = sample_rate * format.nBlockAlign;
 
     HRESULT hr = g_rv360_audio->CreateSourceVoice(&g_rv360_voice, &format);
-    if (FAILED(hr)) return hr;
+    if (FAILED(hr)) {
+        rv360_audio_stop();
+        return hr;
+    }
 
     XAUDIO2_BUFFER buffer;
     ZeroMemory(&buffer, sizeof(buffer));
@@ -220,11 +223,11 @@ HRESULT rv360_audio_play_effect(DWORD effect_index, BOOL looped)
 
 void rv360_audio_stop(void)
 {
-    if (!g_rv360_voice) return;
-    g_rv360_voice->Stop(0);
-    g_rv360_voice->FlushSourceBuffers();
-    g_rv360_voice->DestroyVoice();
-    g_rv360_voice = NULL;
+    if (g_rv360_voice) {
+        // DestroyVoice waits until the audio engine no longer reads the data.
+        g_rv360_voice->DestroyVoice();
+        g_rv360_voice = NULL;
+    }
     free(g_rv360_pcm_data);
     g_rv360_pcm_data = NULL;
 }

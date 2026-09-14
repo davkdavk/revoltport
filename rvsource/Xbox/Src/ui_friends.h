@@ -47,7 +47,11 @@ public:
     DWORD   m_dwCurrentPage;
     DWORD   m_dwUserIndex;
 
+#ifdef _XBOX360
+    WCHAR   m_strMessage[ XONLINE_GAMERTAG_SIZE + 200 ];
+#else
     WCHAR   m_strMessage[ XONLINE_MAX_GAMERTAG_LENGTH + 200 ];
+#endif
 
 };
 

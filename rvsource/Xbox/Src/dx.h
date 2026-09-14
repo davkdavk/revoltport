@@ -614,5 +614,25 @@ extern short RenderZcmp, RenderZwrite, RenderZbuffer;
 #define SORT_INDEPENDENT_OFF() { }
 #endif
 
+#ifdef _XBOX360
+// Compatibility for legacy UI sources that call OG device globals directly.
+// Constants are private adapter tags, not D3D9 texture-stage values.
+#ifndef D3DTSS_ADDRESSU
+#define D3DTSS_ADDRESSU 1001
+#define D3DTSS_ADDRESSV 1002
+#define D3DTSS_ADDRESSW 1003
+#define D3DTSS_MAGFILTER 1004
+#define D3DTSS_MINFILTER 1005
+#define D3DTSS_MIPFILTER 1006
+#endif
+#define D3DDevice_GetTextureStageState(_t,_s,_v) rv360_legacy_get_texture_stage_state((_t),(_s),(_v))
+#define D3DDevice_SetTextureStageState(_t,_s,_v) rv360_legacy_set_texture_stage_state((_t),(_s),(_v))
+#define D3DDevice_SetRenderState(_s,_v) rv360_set_render_state((_s),(_v))
+#define D3DDevice_SetTexture(_t,_v) rv360_set_texture((_t),(_v))
+#define D3DDevice_SetVertexShader(_f) rv360_legacy_set_vertex_format((_f))
+#define D3DDevice_DrawVerticesUP(_p,_n,_v,_s) rv360_legacy_draw_vertices_up((_p),(_n),(_v),(_s))
+#define D3DDevice_DrawIndexedVerticesUP(_p,_n,_i,_v,_s) rv360_legacy_draw_indexed_vertices_up((_p),(_n),(_i),(_v),(_s))
+#endif
+
 #endif // DX_H
 

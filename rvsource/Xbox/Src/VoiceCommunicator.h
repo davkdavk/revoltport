@@ -21,6 +21,7 @@ typedef IXVoiceEncoder *LPXVOICEENCODER;
 typedef IXVoiceDecoder *LPXVOICEDECODER;
 typedef DWORD XVOICE_MASK;
 struct XMEDIAPACKET;
+struct XMediaObject;
 #else
 #include <xvoice.h>
 #endif

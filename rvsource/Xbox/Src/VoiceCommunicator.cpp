@@ -14,6 +14,31 @@
 #include <cassert>
 #include <stdio.h>
 
+#ifdef _XBOX360
+// XVoice media objects deferred with voice chat (M7). Stubs preserve names.
+CVoiceCommunicator::CVoiceCommunicator()
+{
+    ZeroMemory(this, sizeof(*this));
+    m_lSlot = -1;
+}
+
+CVoiceCommunicator::~CVoiceCommunicator() {}
+HRESULT CVoiceCommunicator::Initialize(CVoiceManager *pManager)
+{ m_pManager = pManager; return S_OK; }
+HRESULT CVoiceCommunicator::Shutdown() { return S_OK; }
+HRESULT CVoiceCommunicator::ResetMicrophone() { return E_NOTIMPL; }
+HRESULT CVoiceCommunicator::ResetHeadphone() { return E_NOTIMPL; }
+HRESULT CVoiceCommunicator::OnInsertion(DWORD) { return E_NOTIMPL; }
+HRESULT CVoiceCommunicator::OnRemoval() { return E_NOTIMPL; }
+DWORD CVoiceCommunicator::MicrophonePacketStatus() { return 0; }
+HRESULT CVoiceCommunicator::GetMicrophonePacket(XMEDIAPACKET*) { return E_NOTIMPL; }
+HRESULT CVoiceCommunicator::SubmitMicrophonePacket(XMEDIAPACKET*) { return E_NOTIMPL; }
+DWORD CVoiceCommunicator::HeadphonePacketStatus() { return 0; }
+HRESULT CVoiceCommunicator::GetHeadphonePacket(XMEDIAPACKET*) { return E_NOTIMPL; }
+HRESULT CVoiceCommunicator::SubmitHeadphonePacket(XMEDIAPACKET*) { return E_NOTIMPL; }
+
+#else
+
 
 //-----------------------------------------------------------------------------
 // Name: CVoiceCommunicator (ctor)
@@ -367,3 +392,5 @@ HRESULT CVoiceCommunicator::SubmitHeadphonePacket( XMEDIAPACKET* pPacket )
 
 
 
+
+#endif // _XBOX360 (subsystem stubs above; OG implementation above)

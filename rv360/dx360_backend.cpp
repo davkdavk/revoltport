@@ -32,6 +32,7 @@ static D3DVertexDeclaration *g_rv360_vertex_declaration2 = NULL;
 static D3DVertexShader *g_rv360_vertex_shader = NULL;
 static D3DPixelShader *g_rv360_pixel_shader = NULL;
 static D3DPixelShader *g_rv360_pixel_shader2 = NULL;
+static DWORD g_rv360_legacy_fvf = 0;
 static const DWORD RV360_VERTEX_BUFFER_BYTES = 1024 * 1024;
 static const DWORD RV360_INDEX_BUFFER_BYTES = 256 * 1024;
 
@@ -274,6 +275,87 @@ HRESULT rv360_draw_indexed_vertices_up(D3DPRIMITIVETYPE primitive,
     rv360_push_fog_constant();
     D3DDevice_DrawIndexedVertices(g_rv360_device, primitive, 0, 0, index_count);
     return S_OK;
+}
+
+void rv360_legacy_set_vertex_format(DWORD fvf)
+{
+    g_rv360_legacy_fvf = fvf;
+}
+
+void rv360_legacy_set_texture_stage_state(DWORD stage, DWORD state, DWORD value)
+{
+    // Combiner operations are implemented by the selected pixel shader.
+    // Only sampler states have a direct 360 equivalent.
+    switch (state) {
+        case 1001: rv360_set_sampler_state(stage, D3DSAMP_ADDRESSU, value); break;
+        case 1002: rv360_set_sampler_state(stage, D3DSAMP_ADDRESSV, value); break;
+        case 1003: rv360_set_sampler_state(stage, D3DSAMP_ADDRESSW, value); break;
+        case 1004: rv360_set_sampler_state(stage, D3DSAMP_MAGFILTER, value); break;
+        case 1005: rv360_set_sampler_state(stage, D3DSAMP_MINFILTER, value); break;
+        case 1006: rv360_set_sampler_state(stage, D3DSAMP_MIPFILTER, value); break;
+        default: break;
+    }
+}
+
+void rv360_legacy_get_texture_stage_state(DWORD stage, DWORD state, DWORD *value)
+{
+    (void)stage; (void)state;
+    if (value) *value = 0;
+}
+
+struct RV360_CANONICAL_VERTEX {
+    float x, y, z, rhw;
+    DWORD diffuse, specular;
+    float u, v;
+};
+
+static HRESULT rv360_convert_position_uv(const void *vertices, DWORD count,
+                                         RV360_CANONICAL_VERTEX **converted)
+{
+    struct POSITION_UV { float x, y, z, rhw, u, v; };
+    RV360_CANONICAL_VERTEX *out =
+        (RV360_CANONICAL_VERTEX*)malloc(sizeof(RV360_CANONICAL_VERTEX) * count);
+    if (!out) return E_OUTOFMEMORY;
+    const POSITION_UV *in = (const POSITION_UV*)vertices;
+    for (DWORD i = 0; i < count; i++) {
+        out[i].x = in[i].x; out[i].y = in[i].y;
+        out[i].z = in[i].z; out[i].rhw = in[i].rhw;
+        out[i].diffuse = 0xFFFFFFFF; out[i].specular = 0;
+        out[i].u = in[i].u; out[i].v = in[i].v;
+    }
+    *converted = out;
+    return S_OK;
+}
+
+HRESULT rv360_legacy_draw_vertices_up(D3DPRIMITIVETYPE primitive,
+                                      DWORD vertex_count, const void *vertices,
+                                      DWORD stride)
+{
+    const BOOL position_uv =
+        (g_rv360_legacy_fvf & D3DFVF_TEXCOUNT_MASK) == D3DFVF_TEX1 &&
+        !(g_rv360_legacy_fvf & (D3DFVF_DIFFUSE | D3DFVF_SPECULAR));
+    if (stride == 24 && position_uv) {
+        RV360_CANONICAL_VERTEX *converted = NULL;
+        HRESULT hr = rv360_convert_position_uv(vertices, vertex_count, &converted);
+        if (FAILED(hr)) return hr;
+        hr = rv360_draw_vertices_up(primitive, converted, sizeof(*converted), vertex_count);
+        free(converted);
+        return hr;
+    }
+    return rv360_draw_vertices_up(primitive, vertices, stride, vertex_count);
+}
+
+HRESULT rv360_legacy_draw_indexed_vertices_up(D3DPRIMITIVETYPE primitive,
+                                              DWORD index_count,
+                                              const WORD *indices,
+                                              const void *vertices,
+                                              DWORD stride)
+{
+    DWORD vertex_count = 0;
+    for (DWORD i = 0; i < index_count; i++)
+        if ((DWORD)indices[i] + 1 > vertex_count) vertex_count = indices[i] + 1;
+    return rv360_draw_indexed_vertices_up(primitive, vertices, stride,
+                                          vertex_count, indices, index_count);
 }
 
 #endif

@@ -49,25 +49,26 @@ Files: `Xbox/Src/network.h/.cpp` (`MSG_TYPE/MSG_TYPE_EXT`, `pshpack1` structs:15
 - [ ] M3.4 360 Live map: `XNet + XSession` replace `XOnline OG + GAME_PORT 1000`; voice → GameChat; guard behind `RV360_LIVE` flag (system-link first)
 - Acceptance: packet sizeof/layout table documented; 360↔360 system link parity.
 
-## M4 — Renderer → D3D9/360
+## M4 — Renderer → D3D9/360 (COMPILING FOUNDATION; RUNTIME INCOMPLETE)
 Files: `Xbox/Src/dx.h/.cpp` (macros 36-90, `DRAW_PRIM`), `draw.h/.cpp`, `drawobj.h/.cpp`, `texture.h/.cpp`, `XBResource.h/.cpp`, `XBUtil.h/.cpp`, `xdx.cpp`, `mirror/shadow/text`.
-- [ ] M4.1 `dx.h`: `D3DRS_*` keep, `D3DTSS_*`→`D3DSAMP_*`, drop `COLORKEYOP`, `TEXTURE_ADDRESSU/V/W`→sampler address, `MIPMAPLODBIAS`→sampler LOD bias
-- [ ] M4.2 `DRAW_PRIM(_INDEX)` (`DrawVerticesUP/IndexedVerticesUP`) → vertex decl + VBs + trivial VS/PS; kill `SetVertexShaderConstant/Input/BlockUntilIdle/KickPushBuffer` push-buffer-isms
+- [x] M4.1 compile bridge: sampler state moved to `D3DSAMP_*`; removed fixed-function states routed to shader/no-op equivalents
+- [x] M4.2 compile bridge: `DRAW_PRIM(_INDEX)` routes through dynamic VBs/IBs and transformed VS/PS
 - [ ] M4.3 buckets: `BUCKET_TEX0/TEX1/ENV`, `FlushPolyBuckets/Env/SemiList/NearClip` (`draw.h` XYZRHW `FVF_TEX0/1/2`) → batched draws
 - [ ] M4.4 textures: `TPAGE_*`, `PickTextureFormat=A8R8G8B8`, `LoadTextureClever/Mip/GPU` + swizzle/`.xpr` → `XGSetTextureHeader` tiled; NPOT/square rules; fonts (`XBFont`, `TPAGE_FONT/SPRU/LOADING`)
 - [ ] M4.5 frame: `FlipBuffers/ClearBuffers/SetGamma/InitD3D/BackBufferCount/BackgroundColor` → `Present/Clear/SetGammaRamp`, 720p + safe area
 - Acceptance: front-end menu renders on Xenia; no `Draw*UP` left in game path.
 
-## M5 — Audio → XAudio2/XMA
+## M5 — Audio → XAudio2/XMA (SFX FOUNDATION; MUSIC INCOMPLETE)
 Files: `source/inc/mss.h`, `source/inc/sfx.h`, `Xbox/Src/sfx.h/.cpp`, `SoundEffectEngine.h/.cpp`, `soundbank.h/.cpp`, `MusicManager.h/.cpp`, `tools/SfxParse/`.
-- [ ] Delete Miles (`HSAMPLE/DIG_DRIVER/HSTREAM/PlayMP3/Redbook`); keep `SFX_GENERIC/TOY` IDs + `SAMPLE_3D{RangeMul,Vel}`
-- [ ] `CSoundEffectEngine` (202 instances / 60 effects) → XAudio2 source voices + X3DAudio rolloff; `CSoundBank LPDIRECTSOUNDBUFFER` pool → `.xwb` buffers; rebake `sounds_*.h` via `SfxParse`
+- [x] Compile bridge: DirectSound engine isolated; generated SDF IDs and PCM16/WAV/XWP XAudio2 path compile
+- [ ] Real concurrent SFX voices, SDF variation/volume mapping, X3DAudio rolloff, completion callbacks
 - [ ] `CMusicManager` (`XWmaFileMediaObject + IDirectSoundStream[2]`, `PACKET_*` thread) → XAudio2 streaming + XMA decode
 - Acceptance: menu SFX + one streamed track; volumes/pans sane.
 
-## M6 — Input → XInput 360
+## M6 — Input → XInput 360 (COMPILES; RUNTIME UNVALIDATED)
 Files: `Xbox/Src/XBInput.h/.cpp`, `gamepad.h/.cpp`, `input.h/.cpp`, `ctrlread.h/.cpp`, `control.h/.cpp`.
-- [ ] OG `XINPUT_GAMEPAD/bAnalogButtons[8]/BLACK/WHITE/THUMB_DEADZONE 0.24` + `XBINPUT_CONTROLLER/MenuInput` → 360 `XINPUT_STATE/GAMEPAD` (LT/RT, LB/RB), `XInputSetState` rumble (replaces `t_ForceFeedback` stub)
+- [x] OG input shape mapped from 360 user-index XInput (A/B/X/Y, shoulders, triggers, sticks, pressed/repeat state)
+- [ ] Rumble and target-runtime validation
 - [ ] Keep `KEY/CTRL/FUNCTION_KEY/KeyTable`, `CRD_LocalInput/CON_*` untouched
 - Acceptance: car steers/throttle/brake + menu nav on pad 0 in Xenia.
 
@@ -109,3 +110,5 @@ Files: `Xbox/Src/main.h/.cpp`, `gameloop.h/.cpp`, `timing.h/.cpp`, `XBUtil.cpp T
 - 2026-09-14: Finished the source-level M5 bank path: `audio360_backend` now parses `.xwp` manifests, resolves relative WAV entries, caches PCM16 effects, and dispatches effect IDs through XAudio2. `SoundEffectEngine::LoadSounds` converts legacy `.sfx` paths to `.xwp`, and `Play2DSound` dispatches the loaded effect. Audio and sound-engine units compile cleanly with XeDK.
 - 2026-09-14: Xenon compile audit: `Xbox/Src/load.cpp` now compiles cleanly under `_XBOX360`; `main.cpp` reaches the next expected OG utility/UI forks (`XBUtil.h` D3D8 helper types, online constants, and legacy player declarations).
 - 2026-09-14: Generated 17 per-level sound enum headers from the included `.sdf` definitions under `rv360/generated_sounds/` and switched the 360 sound engine to use them. Sound engine compilation now passes; sample-bank decoding remains separate from enum generation.
+- 2026-09-14: Added repeatable `rv360/check_xenon.sh`; release and debug checks pass for renderer/audio/music/voice/online bridge units. Fixed PCM ownership on failed voice creation and made unsupported music/voice output deterministic.
+- 2026-09-14: `dx.cpp` now compiles with 360 presentation/viewport/gamma/state handling and initializes `dx360_backend`. Legacy `network.cpp` is explicitly excluded on 360; `network360_stub.cpp` supplies offline single-player globals/functions. Multiplayer remains a separate system-link rewrite.

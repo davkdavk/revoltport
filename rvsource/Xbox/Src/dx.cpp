@@ -31,7 +31,11 @@ IDirect3DDevice3 *D3Ddevice = NULL;
 //$REMOVEDIDirect3DViewport3 *D3Dviewport;
 //$REMOVEDDDCAPS DDcaps;
 //$REMOVEDD3DDEVICEDESC D3Dcaps;
+#ifdef _XBOX360
+D3DFORMAT ZedBufferFormat;
+#else
 DDPIXELFORMAT ZedBufferFormat;
+#endif
 DWORD ScreenXsize;
 DWORD ScreenYsize;
 DWORD ScreenBpp;
@@ -355,7 +359,11 @@ BOOL InitD3D(DWORD width, DWORD height, DWORD bpp, DWORD refresh)
     d3dpp.AutoDepthStencilFormat = ZedBufferFormat;
     d3dpp.MultiSampleType        = D3DMULTISAMPLE_NONE;
     d3dpp.SwapEffect             = D3DSWAPEFFECT_DISCARD;
+#ifdef _XBOX360
+    d3dpp.PresentationInterval = (RegistrySettings.Vsync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE);
+#else
     d3dpp.FullScreen_PresentationInterval = (RegistrySettings.Vsync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE); //$REVISIT: we probably don't want to allow IMMEDIATE when we release.
+#endif
 //$END_ADDITION
 
     // $BEGIN_ADDITION - jedl
@@ -404,6 +412,9 @@ BOOL InitD3D(DWORD width, DWORD height, DWORD bpp, DWORD refresh)
         ErrorDX(r, "Can't create a 3D device!");
         return FALSE;
     }
+#ifdef _XBOX360
+    rv360_init_renderer(D3Ddevice, ScreenXsize, ScreenYsize);
+#endif
 
 //$END_MODIFICATIONS
 
@@ -488,7 +499,11 @@ BOOL InitD3D(DWORD width, DWORD height, DWORD bpp, DWORD refresh)
 //        ErrorDX(r, "Can't set current viewport");
 //        return FALSE;
 //    }
+#ifdef _XBOX360
+    D3DDevice_SetViewport(D3Ddevice, &vd);
+#else
     D3DDevice_SetViewport( &vd );
+#endif
 //$END_MODIFICATIONS
 
 // get gamma control interface
@@ -580,6 +595,7 @@ BOOL InitD3D(DWORD width, DWORD height, DWORD bpp, DWORD refresh)
     TEXTURE_ADDRESS(D3DTADDRESS_CLAMP);
     MIPMAP_LODBIAS(-0.02f);  //$REVISIT(cprince): do we really want this?
 
+#ifndef _XBOX360
     SET_STAGE_STATE(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
     SET_STAGE_STATE(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
     SET_STAGE_STATE(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
@@ -587,6 +603,7 @@ BOOL InitD3D(DWORD width, DWORD height, DWORD bpp, DWORD refresh)
     SET_STAGE_STATE(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
     SET_STAGE_STATE(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
     SET_STAGE_STATE(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+#endif
 
     SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, TRUE);
     SET_RENDER_STATE(D3DRENDERSTATE_ALPHAFUNC, D3DCMP_GREATEREQUAL);
@@ -663,7 +680,11 @@ void SetGamma(long brightness, long contrast)
 //        GammaControl->SetGammaRamp(0, &ramp);
 
     // On Xbox, D3DSGR_CALIBRATE is not available.
+#ifdef _XBOX360
+    D3DDevice_SetGammaRamp(D3Ddevice, 0, &ramp);
+#else
     D3DDevice_SetGammaRamp( 0, &ramp );
+#endif
 //$END_MODIFICATIONS
 }
 
@@ -1076,7 +1097,11 @@ void SetupDxState(void)
         DxState.ColorKeyEnabled = TRUE;
 //$MODIFIED:
 //        DxState.ColorKey = TRUE;
+#ifdef _XBOX360
+        DxState.ColorKey = TRUE; // alpha-texture cooker replacement
+#else
         DxState.ColorKey = D3DTCOLORKEYOP_RGBA;  //$CMP_NOTE: should this be D3DTCOLORKEYOP_RGBA, D3DTCOLORKEYOP_ALPHA, or maybe D3DTCOLORKEYOP_KILL ???
+#endif
 //$END_MODIFICATIONS
     }
     else
@@ -1088,7 +1113,7 @@ void SetupDxState(void)
 
     COLORKEY_ON();
 
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
 // anti alias
 
     if (D3Dcaps.dwFlags & D3DDD_TRICAPS && D3Dcaps.dpcTriCaps.dwRasterCaps & D3DPRASTERCAPS_ANTIALIASSORTINDEPENDENT)

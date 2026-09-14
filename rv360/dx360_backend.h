@@ -58,6 +58,21 @@ HRESULT rv360_draw_indexed_vertices_up(D3DPRIMITIVETYPE primitive,
                                         DWORD vertex_count,
                                         const WORD *indices, DWORD index_count);
 
+// Adapter for old UI files that bypass DRAW_PRIM and call D3DDevice_* using
+// OG signatures. SetVertexShader receives an FVF in that path; it is retained
+// solely to disambiguate 24-byte position+UV vertices from game TEX0 vertices.
+void rv360_legacy_set_vertex_format(DWORD fvf);
+void rv360_legacy_set_texture_stage_state(DWORD stage, DWORD state, DWORD value);
+void rv360_legacy_get_texture_stage_state(DWORD stage, DWORD state, DWORD *value);
+HRESULT rv360_legacy_draw_vertices_up(D3DPRIMITIVETYPE primitive,
+                                      DWORD vertex_count, const void *vertices,
+                                      DWORD stride);
+HRESULT rv360_legacy_draw_indexed_vertices_up(D3DPRIMITIVETYPE primitive,
+                                              DWORD index_count,
+                                              const WORD *indices,
+                                              const void *vertices,
+                                              DWORD stride);
+
 // OG xgraphics.h matrix type removed on 360. Compatible layout keeps the
 // car matrix-palette code parsing; real skinning constants move to the 360
 // shader backend (M4 remainder).

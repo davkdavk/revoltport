@@ -937,7 +937,15 @@ VOID CFriendsStateEngine::SyncCurrentFriend()
         return;
     }
 
+#ifdef _XBOX360
+    if( m_pFriend->xuid != m_CurrentFriend.xuid )
+#else
+#ifdef _XBOX360
+    if( m_pFriend->xuid != m_CurrentFriend.xuid )
+#else
     if( !XOnlineAreUsersIdentical( &m_pFriend->xuid, &m_CurrentFriend.xuid ) )
+#endif
+#endif
     {
         // m_pFriend isn't pointing to the right guy anymore.  See if he's
         // still in our friends list

@@ -13,6 +13,77 @@
 #include <stdio.h>
 #include "XBFont.h"
 
+#ifdef _XBOX360
+// Voice chat engine deferred with Live (M7). Stubs preserve link names;
+// all chat state reports empty/inactive offline.
+CVoiceManager g_VoiceManager;
+
+CVoiceManager::CVoiceManager()
+    : m_pCallbackContext(NULL), m_pfnCommunicatorCallback(NULL),
+      m_pfnVoiceDataCallback(NULL), m_dwSamplingRate(0), m_dwPacketTime(0),
+      m_dwPacketSize(0), m_dwBufferSize(0), m_dwCompressedSize(0),
+      m_dwNumBuffers(0), m_dwMaxChatters(0), m_dwQueueResetThreshold(0),
+      m_dwFirstSRCEffectIndex(0), m_pDSPImageDesc(NULL), m_pChatters(NULL),
+      m_dwNumChatters(0), m_bIsInChatSession(FALSE), m_dwConnectedCommunicators(0),
+      m_dwMicrophoneState(0), m_dwHeadphoneState(0), m_dwLoopback(0), m_dwEnabled(0),
+      m_bFlushQueuesOnNextProcess(FALSE), m_pbTempEncodedPacket(NULL)
+{
+    ZeroMemory(&m_wfx, sizeof(m_wfx));
+#if _DEBUG
+    ZeroMemory(m_strDebugLog, sizeof(m_strDebugLog));
+    m_dwCurrentLogEntry = 0;
+#endif
+}
+CVoiceManager::~CVoiceManager() {}
+HRESULT CVoiceManager::Initialize(VOICE_MANAGER_CONFIG*) { return E_NOTIMPL; }
+HRESULT CVoiceManager::Shutdown() { return S_OK; }
+HRESULT CVoiceManager::AddChatter(XUID) { return E_NOTIMPL; }
+HRESULT CVoiceManager::RemoveChatter(XUID) { return E_NOTIMPL; }
+HRESULT CVoiceManager::CheckDeviceChanges() { return S_OK; }
+HRESULT CVoiceManager::OnCommunicatorInserted(DWORD) { return E_NOTIMPL; }
+HRESULT CVoiceManager::OnCommunicatorRemoved(DWORD) { return E_NOTIMPL; }
+HRESULT CVoiceManager::OnCommunicatorEvent(DWORD, VOICE_COMMUNICATOR_EVENT) { return S_OK; }
+VOID CVoiceManager::EnterChatSession() {}
+VOID CVoiceManager::LeaveChatSession() {}
+DWORD CVoiceManager::ChatterIndexFromXUID(XUID) { return (DWORD)-1; }
+HRESULT CVoiceManager::ToggleListenToChatter(XUID, BOOL, DWORD) { return E_NOTIMPL; }
+HRESULT CVoiceManager::MutePlayer(XUID, DWORD) { return E_NOTIMPL; }
+HRESULT CVoiceManager::UnMutePlayer(XUID, DWORD) { return E_NOTIMPL; }
+BOOL CVoiceManager::IsPlayerMuted(XUID, DWORD) { return FALSE; }
+HRESULT CVoiceManager::RemoteMutePlayer(XUID, DWORD) { return E_NOTIMPL; }
+HRESULT CVoiceManager::UnRemoteMutePlayer(XUID, DWORD) { return E_NOTIMPL; }
+BOOL CVoiceManager::IsPlayerRemoteMuted(XUID, DWORD) { return FALSE; }
+BOOL CVoiceManager::DoesPlayerHaveVoice(XUID) { return FALSE; }
+BOOL CVoiceManager::IsPlayerTalking(XUID) { return FALSE; }
+HRESULT CVoiceManager::BroadcastPacket(VOID*, INT, DWORD) { return E_NOTIMPL; }
+HRESULT CVoiceManager::ReceivePacket(XUID, VOID*, INT) { return E_NOTIMPL; }
+HRESULT CVoiceManager::EnableCommunicator(DWORD, BOOL) { return S_OK; }
+HRESULT CVoiceManager::SetVoiceMask(DWORD, XVOICE_MASK) { return S_OK; }
+HRESULT CVoiceManager::SetLoopback(DWORD, BOOL) { return S_OK; }
+HRESULT CVoiceManager::GetTemporaryPacket(XMEDIAPACKET*) { return E_NOTIMPL; }
+HRESULT CVoiceManager::GetStreamPacket(XMEDIAPACKET*, DWORD) { return E_NOTIMPL; }
+HRESULT CVoiceManager::SubmitStreamPacket(XMEDIAPACKET*, DWORD) { return E_NOTIMPL; }
+HRESULT CVoiceManager::ProcessMicrophones() { return S_OK; }
+HRESULT CVoiceManager::ProcessQueues() { return S_OK; }
+HRESULT CVoiceManager::GetSRCInfo(DWORD, DWORD* size, VOID** data, DWORD* position)
+{
+    if (size) *size = 0;
+    if (data) *data = NULL;
+    if (position) *position = 0;
+    return E_NOTIMPL;
+}
+HRESULT CVoiceManager::ProcessHeadphones() { return S_OK; }
+HRESULT CVoiceManager::ProcessVoice() { return S_OK; }
+HRESULT CVoiceManager::ResetChatter(DWORD) { return S_OK; }
+HRESULT CVoiceManager::FlushQueuesInternal() { return S_OK; }
+#if _DEBUG
+VOID CVoiceManager::VoiceLog(WCHAR*, ...) {}
+VOID CVoiceManager::RenderDebugInfo(CXBFont*) {}
+HRESULT CVoiceManager::ValidateStateDbg() { return S_OK; }
+#endif
+
+#else
+
 // Global instance of the voice manager
 CVoiceManager g_VoiceManager;
 
@@ -1614,3 +1685,4 @@ HRESULT CVoiceManager::ValidateStateDbg()
 
 
 #endif // DEBUG
+#endif // _XBOX360 (subsystem stubs above; OG implementation above)

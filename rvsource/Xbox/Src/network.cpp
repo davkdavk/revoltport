@@ -101,6 +101,12 @@ $HEY - (Acclaim Aug99) here are some new fields in SessionList[] that get set in
 
 #include "revolt.h"
 #include "network.h"
+#ifdef _XBOX360
+// The OG implementation combines XOnline matchmaking, structured OG XUIDs,
+// XVoice packets, DirectPlay remnants, and transport code. It is excluded
+// from the offline-first 360 target; network360_stub.cpp supplies conservative
+// game-facing defaults. System-link/Live are a separate protocol rewrite.
+#else
 #include "net_xonline.h"
 #include "main.h"
 #include "text.h"
@@ -5431,3 +5437,5 @@ $END_REMOVAL */
 
 
 
+
+#endif // _XBOX360 (legacy network implementation excluded)

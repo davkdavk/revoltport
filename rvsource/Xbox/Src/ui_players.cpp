@@ -390,7 +390,7 @@ void CreatePlayerActionMenu( MENU_HEADER* pMenuHeader, MENU* pMenu )
 {
     NET_PLAYER* pPlayer = (NET_PLAYER *)g_PlayersStateEngine.m_amiPlayers[ g_PlayersStateEngine.m_dwSelectedPlayer ].Data;
     XONLINE_FRIEND* pFriend = g_FriendsManager.FindPlayerInFriendsList( 0, pPlayer->xuid );
-    DWORD dwOnlineFlags = ( IsLoggedIn(0) && pPlayer->xuid.qwUserID != 0 ) ? MENU_ITEM_ACTIVE | MENU_ITEM_SELECTABLE : MENU_ITEM_INACTIVE;
+    DWORD dwOnlineFlags = ( IsLoggedIn(0) && pPlayer->xuid != 0 ) ? MENU_ITEM_ACTIVE | MENU_ITEM_SELECTABLE : MENU_ITEM_INACTIVE;
 
     if( pFriend )
     {
@@ -807,7 +807,7 @@ HRESULT CPlayersStateEngine::AddFriend()
     // Get the NET_PLAYER ptr from the menu item, because
     // m_dwSelectedPlayer can't be used as an index into PlayerList.
     NET_PLAYER* pPlayer = (NET_PLAYER *)m_amiPlayers[ m_dwSelectedPlayer ].Data;
-    if( pPlayer->xuid.qwUserID != 0 )
+        if( pPlayer->xuid != 0 )
     {
         //$HACK: We're always telling the online APIs the user signed in on controller 0.
         return g_FriendsManager.AddPlayerToFriendsList( 0, pPlayer->xuid );

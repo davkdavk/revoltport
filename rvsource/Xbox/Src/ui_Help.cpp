@@ -340,7 +340,9 @@ VOID DrawHelpWeapons( MENU_HEADER* pMenuHeader, MENU* pMenu )
         Verts[3].tv = v1;
 
         // draw outlined box
+#ifndef _XBOX360
         D3DDevice_DrawVerticesUP( D3DPT_LINELOOP, 4, Verts, sizeof(Verts[0]) );
+#endif
 
         // draw textured quad
         D3DDevice_DrawVerticesUP( D3DPT_QUADLIST, 4, Verts, sizeof(Verts[0]) );

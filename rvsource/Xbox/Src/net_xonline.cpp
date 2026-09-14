@@ -20,6 +20,27 @@
 
 void OnSessionEntered();  //$UGLY: reaching into network.cpp ...
 
+#ifdef _XBOX360
+// Matchmaking/sign-in tasks use OG XOnline APIs (deferred, M3.4/M7).
+// Offline stubs preserve link names; search reports complete-and-empty.
+BOOL g_bXOnlineSessionSearchComplete = TRUE;
+DWORD g_dwSignedInController = 0;
+XONLINE_ATTRIBUTE g_rgAttribs_MatchCreate[NUM_XATTRIB_MATCHCREATE];
+XONLINE_ATTRIBUTE g_rgAttribs_MatchSearch[NUM_XATTRIB_MATCHSEARCH];
+XONLINE_ATTRIBUTE_SPEC g_rgAttribs_MatchResult[NUM_XATTRIB_MATCHRESULT];
+
+BOOL IsLoggedIn(DWORD) { return FALSE; }
+void AddOnlinePresenceFlag(DWORD, DWORD) {}
+void RemoveOnlinePresenceFlag(DWORD, DWORD) {}
+void OnlineTasks_Startup(void) {}
+void OnlineTasks_Cleanup(void) {}
+void OnlineTasks_Add(XONLINETASK_HANDLE, OnlineTaskType) {}
+void OnlineTasks_Remove(int) {}
+void OnlineTasks_RemoveByValue(XONLINETASK_HANDLE) {}
+void OnlineTasks_Continue(void) {}
+
+#else
+
 
 //$REVISIT: make sure we're handling all XOnline return values correctly
 // (ie, displaying user messages for potential return values and handling
@@ -477,3 +498,5 @@ void OnlineTasks_Continue( void )
 
 }
 
+
+#endif // _XBOX360 (subsystem stubs above; OG implementation above)

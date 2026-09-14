@@ -794,6 +794,10 @@ void FreeFrontEndTextures()
 //-----------------------------------------------------------------------------
 HRESULT CheckForAcceptedInvites()
 {
+#ifdef _XBOX360
+    // Cross-title OG Live invites are unavailable in the offline-first port.
+    return E_NOTIMPL;
+#else
     // We have to call XOnlineStartup in order to call 
     // XOnlineFriendsGetAcceptedGameInvite
     XBOnline_Startup();
@@ -981,6 +985,7 @@ HRESULT CheckForAcceptedInvites()
     // so we should clean up online/networking
     XBOnline_Cleanup();
     return hr;
+ #endif
 }
 
 

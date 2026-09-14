@@ -9,7 +9,11 @@
 #ifndef UI_OPTIONS_H
 #define UI_OPTIONS_H
 
+#ifdef _XBOX360
+#include "../../../rv360/rv360_online_stub.h"
+#else
 #include <xvoice.h>
+#endif
 
 
 extern MENU Menu_Options;

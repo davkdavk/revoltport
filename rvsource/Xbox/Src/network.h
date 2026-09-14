@@ -468,7 +468,11 @@ extern const ZERO_UNION g_Zero;
 #define IsSameXNKID(_xnkid1,_xnkid2)  ( 0 == memcmp(&(_xnkid1), &(_xnkid2), sizeof(XNKID)) )
 #define IsZeroXNKID(_xnkid)          ( 0 == memcmp(&(_xnkid), &g_Zero.xnkid, sizeof(XNKID)) )
 //#define IsSameXUID(_xuid1,_xuid2)     ( 0 == memcmp(&(_xuid1), &(_xuid2), sizeof(XUID)) )
+#ifdef _XBOX360
+#define IsSameXUID(_xuid1,_xuid2)     ((_xuid1) == (_xuid2))
+#else
 #define IsSameXUID(_xuid1,_xuid2)     ( XOnlineAreUsersIdentical(&(_xuid1), &(_xuid2)) )
+#endif
 #define IsZeroXUID(_xuid)            ( 0 == memcmp(&(_xuid), &g_Zero.xuid, sizeof( XUID)) )
 #define IsInGameSession()           ( ! IsZeroXNKID(SessionCurr.keyID) )
 #define IsInWaitingRoom()           ( IsInGameSession() && !bGameStarted )

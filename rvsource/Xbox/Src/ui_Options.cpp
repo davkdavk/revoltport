@@ -1036,7 +1036,7 @@ void CreateRenderSettingsMenu( MENU_HEADER* pMenuHeader, MENU* pMenu )
 // Utility
 BOOL ToggleAntiAliasOff( MENU_HEADER* pMenuHeader, MENU* pMenu, MENU_ITEM* pMenuItem )
 {
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
     gTitleScreenVars.antialias = FALSE;
     DxState.AntiAlias = D3DANTIALIAS_NONE;
     ANTIALIAS_ON();
@@ -1047,7 +1047,7 @@ BOOL ToggleAntiAliasOff( MENU_HEADER* pMenuHeader, MENU* pMenu, MENU_ITEM* pMenu
 
 BOOL ToggleAntiAliasOn( MENU_HEADER* pMenuHeader, MENU* pMenu, MENU_ITEM* pMenuItem )
 {
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
     gTitleScreenVars.antialias = TRUE;
     DxState.AntiAlias = D3DANTIALIAS_SORTINDEPENDENT;
     ANTIALIAS_ON();
@@ -1686,7 +1686,7 @@ BOOL MenuControlConfigBack( MENU_HEADER* pMenuHeader, MENU* pMenu, MENU_ITEM* pM
     }
 
     // set steering deadzone / range?
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
     if (RegistrySettings.Joystick != -1)
     {
         if (KeyTable[KEY_LEFT].Type == KEY_TYPE_AXISNEG || KeyTable[KEY_LEFT].Type == KEY_TYPE_AXISPOS)

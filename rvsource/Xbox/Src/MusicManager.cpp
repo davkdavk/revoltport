@@ -12,6 +12,67 @@
 #include <stdio.h>
 #include <tchar.h>
 
+#ifdef _XBOX360
+// WMA streaming engine deferred to XAudio2/XMA music streaming (M5
+// remainder). Stubs preserve link names; playback resolves in M5.
+CMusicManager g_MusicManager;
+
+CMusicManager::CMusicManager()
+    : m_fGlobal(FALSE), m_fRandom(FALSE), m_lVolume(0),
+      m_mmOldState(MM_STOPPED), m_mmState(MM_STOPPED), m_dwPacketsCompleted(0),
+      m_aSoundtracks(NULL), m_uSoundtrackCount(0), m_uCurrentSoundtrack(0),
+      m_dwLength(0), m_dwSong(0), m_dwSongID(0), m_hDecodingFile(INVALID_HANDLE_VALUE),
+      m_pDecoder(NULL), m_dwStream(0), m_pbSampleData(NULL),
+      m_hThread(NULL), m_hShutdownEvent(NULL)
+{
+    ZeroMemory(m_szSong, sizeof(m_szSong));
+    ZeroMemory(m_pStream, sizeof(m_pStream));
+    ZeroMemory(m_adwPacketStatus, sizeof(m_adwPacketStatus));
+}
+CMusicManager::~CMusicManager() {}
+HRESULT CMusicManager::Initialize(BOOL) { return E_NOTIMPL; }
+HRESULT CMusicManager::Play() { return E_NOTIMPL; }
+HRESULT CMusicManager::Stop() { return S_OK; }
+HRESULT CMusicManager::Pause() { return E_NOTIMPL; }
+HRESULT CMusicManager::SetRandom(BOOL value) { m_fRandom = value; return S_OK; }
+HRESULT CMusicManager::SetGlobal(BOOL value) { m_fGlobal = value; return S_OK; }
+HRESULT CMusicManager::SetVolume(LONG value) { m_lVolume = value; return E_NOTIMPL; }
+HRESULT CMusicManager::GetCurrentInfo(WCHAR* soundtrack, WCHAR* song, DWORD* length)
+{
+    if (soundtrack) soundtrack[0] = 0;
+    if (song) song[0] = 0;
+    if (length) *length = 0;
+    return E_NOTIMPL;
+}
+FLOAT CMusicManager::GetPlaybackPosition() { return 0.0f; }
+HRESULT CMusicManager::NextSoundtrack() { return E_NOTIMPL; }
+HRESULT CMusicManager::NextSong() { return E_NOTIMPL; }
+HRESULT CMusicManager::RandomSong(BOOL) { return E_NOTIMPL; }
+HRESULT CMusicManager::LoadSoundtracks() { return E_NOTIMPL; }
+HRESULT CMusicManager::SelectSoundtrack(DWORD) { return E_NOTIMPL; }
+HRESULT CMusicManager::SelectSong(DWORD) { return E_NOTIMPL; }
+HRESULT CMusicManager::FindNextSong() { return E_NOTIMPL; }
+HRESULT CMusicManager::Prepare() { return E_NOTIMPL; }
+HRESULT CMusicManager::Cleanup() { return S_OK; }
+HRESULT CMusicManager::Process() { return S_OK; }
+BOOL CMusicManager::FindFreePacket(DWORD* packet, DWORD)
+{
+    if (packet) *packet = (DWORD)-1;
+    return FALSE;
+}
+HRESULT CMusicManager::ProcessSource(DWORD, XMEDIAPACKET*) { return E_NOTIMPL; }
+HRESULT CMusicManager::ProcessStream(DWORD, XMEDIAPACKET*) { return E_NOTIMPL; }
+HRESULT CMusicManager::MusicManagerDoWork() { return S_OK; }
+VOID CSoundtrack::GetSongInfo(UINT, DWORD* id, DWORD* length, WCHAR* name)
+{
+    if (id) *id = (DWORD)-1;
+    if (length) *length = 0;
+    if (name) name[0] = 0;
+}
+HANDLE CSoundtrack::OpenSong(DWORD) { return INVALID_HANDLE_VALUE; }
+
+#else
+
 
 
 // Global MusicManager object
@@ -1093,3 +1154,4 @@ CSoundtrack::OpenSong( DWORD dwSongID )
     else
         return XOpenSoundtrackSong( dwSongID, FALSE );
 }
+#endif // _XBOX360 (subsystem stubs above; OG implementation above)

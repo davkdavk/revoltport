@@ -15,6 +15,7 @@
 #ifdef _XBOX360
 // Voice chat moves to XHV/GameChat on 360 (deferred with Live). Stub the OG
 // voice/DSound types so dependents parse; the .cpp gets a real port.
+#include <audiodefs.h>
 struct IDirectSound8;
 struct IDirectSoundStream;
 struct DSEffectImageDesc;
@@ -25,6 +26,9 @@ typedef DSEffectImageDesc *LPDSEFFECTIMAGEDESC;
 struct IXVoiceDecoder;
 typedef IXVoiceDecoder *LPXVOICEDECODER;
 typedef DWORD XVOICE_MASK;
+#ifndef XGetPortCount
+#define XGetPortCount() 4
+#endif
 #else
 #include <xvoice.h>
 #endif
