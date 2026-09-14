@@ -17,8 +17,27 @@ rvsource/cars/
 rvsource/gfx/
 rvsource/A-revolt/
 rvsource/"A Re-volt"/
+rvsource/CarConv/
+rvsource/CarInfo/
+rvsource/Databases/
+rvsource/ToyRoom/
+rvsource/Track Editor/
+rvsource/Utils/
+rvsource/VcUser/
+rvsource/edit/
+rvsource/editor/
+rvsource/ladder/
+rvsource/rconv/
+rvsource/Xbox/FrontEndSrc/
+rvsource/Xbox/content_packages/
+rvsource/Xbox/ui/
 rvsource/strings/
 rvsource/source/lib/
+rvsource/*.doc
+rvsource/*.DOC
+rvsource/*.rc
+rvsource/*.ico
+rvsource/*.tsk
 rvsource/*.001
 rvsource/*.002
 rvsource/**/*.xpr
