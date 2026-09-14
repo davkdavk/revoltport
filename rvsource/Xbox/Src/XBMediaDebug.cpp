@@ -10,6 +10,11 @@
 #include "XbMediaDebug.h"
 #include <stdio.h>
 
+#ifdef _XBOX360
+// Standalone OG surface-debug library; nothing in game code references it.
+// Excluded on 360 (PIX on the 360 devkit covers this role).
+#else
+
 // forward declarations
 CHAR *DebugFormat(DWORD format);
 
@@ -1550,3 +1555,5 @@ HRESULT __cdecl DebugRenderState()
     fclose(fp);
     return S_OK;
 }
+
+#endif // _XBOX360 (OG media-debug implementation above)

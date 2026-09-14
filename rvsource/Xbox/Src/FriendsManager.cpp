@@ -10,6 +10,37 @@
 #include "FriendsManager.h"
 #include <assert.h>
 
+#ifdef _XBOX360
+// Friends/presence/mute/feedback uses OG Live APIs (deferred, M3.4/M7).
+// Offline stubs preserve link names; all report empty/inactive.
+CFriendsManager g_FriendsManager;
+
+CFriendsManager::CFriendsManager() {}
+CFriendsManager::~CFriendsManager() {}
+HRESULT CFriendsManager::Initialize() { return S_OK; }
+HRESULT CFriendsManager::Shutdown() { return S_OK; }
+HRESULT CFriendsManager::Process() { return S_OK; }
+HRESULT CFriendsManager::StartUpdatingFriends(DWORD) { return E_NOTIMPL; }
+HRESULT CFriendsManager::StopUpdatingFriends(DWORD) { return S_OK; }
+HRESULT CFriendsManager::AddPlayerToFriendsList(DWORD, XUID) { return E_NOTIMPL; }
+HRESULT CFriendsManager::RemoveFriendFromFriendsList(DWORD, XONLINE_FRIEND*) { return E_NOTIMPL; }
+HRESULT CFriendsManager::AnswerFriendRequest(DWORD, XONLINE_FRIEND*, XONLINE_REQUEST_ANSWER_TYPE) { return E_NOTIMPL; }
+HRESULT CFriendsManager::SendGameInvite(DWORD, XNKID, XONLINE_FRIEND*) { return E_NOTIMPL; }
+HRESULT CFriendsManager::RevokeGameInvite(DWORD, XNKID, XONLINE_FRIEND*) { return E_NOTIMPL; }
+HRESULT CFriendsManager::AnswerGameInvite(DWORD, XONLINE_FRIEND*, XONLINE_GAMEINVITE_ANSWER_TYPE) { return E_NOTIMPL; }
+HRESULT CFriendsManager::GetAcceptedGameInvite(XONLINE_ACCEPTED_GAMEINVITE*) { return E_NOTIMPL; }
+HRESULT CFriendsManager::JoinCrossTitleGame(DWORD, XONLINE_FRIEND*) { return E_NOTIMPL; }
+XONLINE_FRIEND* CFriendsManager::FindPlayerInFriendsList(DWORD, XUID) { return NULL; }
+BOOL CFriendsManager::HasFriendsListChanged(DWORD) { return FALSE; }
+DWORD CFriendsManager::GetNumFriends(DWORD) { return 0; }
+XONLINE_FRIEND* CFriendsManager::GetFriend(DWORD, DWORD) { return NULL; }
+HRESULT CFriendsManager::GetFriendTitleName(XONLINE_FRIEND*, WORD, DWORD, WCHAR*) { return E_NOTIMPL; }
+HRESULT CFriendsManager::AddPlayerToMuteList(DWORD, XUID) { return E_NOTIMPL; }
+HRESULT CFriendsManager::RemovePlayerFromMuteList(DWORD, XUID) { return E_NOTIMPL; }
+BOOL CFriendsManager::IsPlayerInMuteList(DWORD, XUID) { return FALSE; }
+HRESULT CFriendsManager::SendFeedback(DWORD, XUID, XONLINE_FEEDBACK_TYPE, WCHAR*) { return E_NOTIMPL; }
+
+#else
 
 CFriendsManager g_FriendsManager;
 
@@ -1272,3 +1303,4 @@ void CFriendsManager::DbgWarn( CHAR* format, ... )
     OutputDebugString( strTemp );
 }
 #endif // _DEBUG
+#endif // _XBOX360 (friends stubs above; OG implementation above)

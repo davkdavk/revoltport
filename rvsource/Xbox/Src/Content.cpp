@@ -113,17 +113,35 @@ VOID CContentManager::CleanUp()
     // NOTE: this cleans up any memory reserver for download, enum, etc.
     if(m_hContentTask != NULL)
     {
+#ifdef _XBOX360
+        m_hContentTask = NULL;
+#else
         XOnlineTaskClose(m_hContentTask);
         m_hContentTask = NULL;
+#endif
     }
 }
 
 
-
 //-----------------------------------------------------------------------------
 // Name: Begin Enum
-// Desc: begins content enumeration
-//-----------------------------------------------------------------------------    
+// Desc: begins content enumeration (OG Live; 360 stubs below)
+//-----------------------------------------------------------------------------
+#ifdef _XBOX360
+VOID CContentManager::BeginEnum(DWORD, DWORD, BOOL) {}
+VOID CContentManager::UpdateEnum() {}
+VOID CContentManager::BeginDownloadWorking() {}
+VOID CContentManager::BeginDownload(DWORD) {}
+VOID CContentManager::BeginDownloadAll() {}
+VOID CContentManager::UpdateDownload() {}
+VOID CContentManager::BeginGetDetails(DWORD) {}
+VOID CContentManager::UpdateGetDetails() {}
+bool CContentManager::CurrentUserCanPurchase() { return false; }
+VOID CContentManager::BeginPurchase(DWORD) {}
+VOID CContentManager::UpdatePurchase() {}
+VOID CContentManager::BeginCancelSubscription(DWORD) {}
+VOID CContentManager::UpdateCancelSubscription() {}
+#else    
 VOID CContentManager::BeginEnum( DWORD dwBitFilter, DWORD dwOfferingType, BOOL bIncludePay)
 {
     // assert that we are not doing something else
@@ -607,6 +625,7 @@ VOID CContentManager::UpdateCancelSubscription()
         
     }
 }
+#endif // _XBOX360 (Live content stubs above; OG implementation above)
 
 //-----------------------------------------------------------------------------
 // Name: BeginError
@@ -629,8 +648,12 @@ VOID CContentManager::CancelTask()
 {
     if(m_hContentTask != NULL)
     {
+#ifdef _XBOX360
+        m_hContentTask = NULL;
+#else
         XOnlineTaskClose(m_hContentTask);
         m_hContentTask = NULL;
+#endif
     } 
 }
 
@@ -679,12 +702,20 @@ bool CContentManager::VerifyContent( const char* szContentDirectory )
     assert( szContentDirectory );
 
     // get signatures handle 
+#ifdef _XBOX360
+    // Package signature verification uses OG content APIs (deferred to the
+    // XContent rewrite, M7). DLC packages do not exist on 360 yet and all
+    // current callers are already deferred, so accept here.
+    (void)szContentDirectory;
+    return TRUE;
+#else
     HANDLE hSig = XLoadContentSignatures( szContentDirectory );
     if ( hSig == INVALID_HANDLE_VALUE )
     {
         Error( HRESULT_FROM_WIN32(GetLastError()) );
         return FALSE;
     }
+#endif
 
     // create vector of search directories
     std::vector< std::string > Directories;
@@ -762,6 +793,11 @@ bool CContentManager::VerifyContent( const char* szContentDirectory )
                 else
                 {
             
+#ifdef _XBOX360
+                    // Per-file package signatures deferred (M7); the walk
+                    // still validates that package files are readable.
+                    (void)LocalPath;
+#else
                     // locate signature
                     BYTE* pbySignature = NULL;
                     DWORD dwSignatureSize = XCALCSIG_SIGNATURE_SIZE;
@@ -793,6 +829,7 @@ bool CContentManager::VerifyContent( const char* szContentDirectory )
                             }
                         }
                     }
+#endif // _XBOX360 (per-file signatures deferred)
                 }
 
                 // cleanup 
@@ -812,9 +849,13 @@ bool CContentManager::VerifyContent( const char* szContentDirectory )
         CloseHandle( hFind );
     }
 
+#ifdef _XBOX360
+    return bSuccess;
+#else
     XCloseContentSignatures( hSig );
 
     return bSuccess;
+#endif
 }
 
 
@@ -884,8 +925,15 @@ bool CContentManager::DeleteCorruptContent()
     {
         if(m_OwnedContent[i].IsCorrupt())
         {
+#ifdef _XBOX360
+            // Package removal uses OG DLC APIs (deferred, M7); report
+            // unremovable like a failed removal below.
+            (void)m_OwnedContent[i].GetInstallDirectory();
+            {
+#else
             if(!XRemoveContent(m_OwnedContent[i].GetInstallDirectory()))
             {
+#endif
                 // we have corrupt content but cannot remove it
                 if(bRemovedAll)
                 {

@@ -16,6 +16,32 @@
 #include "ui_ShowMessage.h" // for displaying XOnline errors to player
 #include "content.h"
 
+#ifdef _XBOX360
+// Live sign-in/services use OG XOnline APIs (deferred, M3.4/M7). Offline
+// stubs preserve link names; sign-in always reports inactive.
+XONLINETASK_HANDLE g_hSignInTask = NULL;
+DWORD g_pXOnlineServices[] = { 0 };
+const DWORD NUM_XONLINE_SERVICES = 0;
+
+HRESULT XBOnline_Startup() { return E_NOTIMPL; }
+HRESULT XBOnline_Cleanup() { return S_OK; }
+HRESULT XBOnline_GetUserList(XONLINE_USER **ppUserList, DWORD *pdwNumUsers)
+{
+    if (ppUserList) *ppUserList = NULL;
+    if (pdwNumUsers) *pdwNumUsers = 0;
+    return E_NOTIMPL;
+}
+BOOL XBOnline_IsActive() { return FALSE; }
+HRESULT XBOnline_BeginSignIn(XONLINE_USER *pUserList[4])
+{
+    (void)pUserList;
+    return E_NOTIMPL;
+}
+HRESULT XBOnline_PumpSignInTask() { return E_NOTIMPL; }
+VOID XBOnline_SignOut() {}
+
+#else
+
 
 
 //-----------------------------------------------------------------------------
@@ -376,3 +402,5 @@ VOID XBOnline_SignOut()
     g_bHasSubscription = FALSE;
 }
 
+
+#endif // _XBOX360 (Live stubs above; OG implementation above)
