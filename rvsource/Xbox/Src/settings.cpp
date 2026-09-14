@@ -100,7 +100,7 @@ void GetRegistrySettings(void)
     StarList.NumTotal = CountFileStars(LEVEL_STUNT_ARENA);
     StarList.Checksum = GetMemChecksum(&StarList.NumFound, sizeof(StarList) - sizeof(long));
 
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
 // create or open key
 
     r = RegCreateKeyEx(REGISTRY_ROOT, RegistryKey, 0, "Revolt", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &key, &flag);
@@ -340,7 +340,7 @@ void GetRegistrySettings(void)
 //#endif
 //$END_REMOVAL
 
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
 // write game version for 'zone'
 
     SET_REGISTRY_VALUE(key, "Version", REG_SZ, VersionString, strlen(VersionString));
@@ -357,7 +357,7 @@ void GetRegistrySettings(void)
 
 void SetRegistrySettings(void)
 {
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
     long r;
     HKEY key;
 
@@ -403,7 +403,7 @@ void SetRegistrySettings(void)
     strncpy(RegistrySettings.PlayerName, gTitleScreenVars.PlayerData[0].nameEnter, MAX_PLAYER_NAME);
     RegistrySettings.PlayerName[MAX_PLAYER_NAME-1] = '\0';  //$HEY: is this necessary?  (Not reqd if source player name is guaranteed to be ok.)
 
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
     SET_REGISTRY_VALUE(key, "EnvFlag", REG_DWORD, &RegistrySettings.EnvFlag, 4);
     SET_REGISTRY_VALUE(key, "MirrorFlag", REG_DWORD, &RegistrySettings.MirrorFlag, 4);
     SET_REGISTRY_VALUE(key, "AutoBrake", REG_DWORD, &RegistrySettings.AutoBrake, 4);

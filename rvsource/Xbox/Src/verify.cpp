@@ -6,6 +6,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
 #include "verify.h"
+#ifdef _XBOX360
+#include "main.h"
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -127,7 +130,21 @@ bool GetSignature(const char* szFileName, XCALCSIG_SIGNATURE* pSig)
 {
     assert(szFileName);
     assert(pSig);
-    
+#ifdef _XBOX360
+    // No platform signing API on 360; checksum the file into the signature
+    // buffer so VerifySignature/SaveSignature round-trip consistently.
+    FILE* fp = fopen(szFileName, "rb");
+    if (!fp) return false;
+    unsigned long checksum = 0;
+    BYTE buf[MAX_VERIFY_LENGTH];
+    size_t n;
+    while ((n = fread(buf, 1, sizeof(buf), fp)) > 0)
+        checksum += GetMemChecksum((long*)buf, (long)n);
+    fclose(fp);
+    for (int i = 0; i < 20; i++)
+        pSig->rgbSignature[i] = (BYTE)(checksum >> ((i % 4) * 8));
+    return true;
+#else
     FILE* fp = NULL;
     BYTE* pBuf = NULL;
     HANDLE hSig = INVALID_HANDLE_VALUE;
@@ -183,4 +200,5 @@ Cleanup:
 Error:
     bSuccess = false;
     goto Cleanup;
+#endif // _XBOX360 (plain-checksum path above)
 }

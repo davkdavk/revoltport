@@ -5366,8 +5366,9 @@ static long InitRipple(OBJECT *obj, long *flags)
     ripple->Dolphin = (RippleInfo[flags[0]].Model == LEVEL_MODEL_GARDEN_WATER1);
     ripple->DolphinCount = 0;
 
-#ifndef XBOX_NOT_YET_IMPLEMENTED
-// create procedural texture
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
+// create procedural texture (DDraw surface locks; 360 dynamic-texture
+// equivalent deferred with the water effect rewrite)
 
     if (ripple->Master)
     {

@@ -10,6 +10,13 @@
 
 #include "revolt.h"
 
+#ifdef _XBOX360
+// OG console signature API (XCalculateSignature) was removed on 360.
+// Same 20-byte shape, filled by a plain checksum in verify.cpp (tamper
+// evidence for local settings only, not platform security).
+struct XCALCSIG_SIGNATURE { BYTE rgbSignature[20]; };
+#endif
+
 
 #define MAX_VERIFY_LENGTH  1024
 
