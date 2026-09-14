@@ -16,6 +16,45 @@
 #include "XBHelp.h"
 #include "XBResource.h"
 
+#ifdef _XBOX360
+// Help-overlay rendering uses the OG vertex-buffer/XPR path; deferred with
+// the UI port (ui_Help.cpp). Stubs keep the class linkable.
+HRESULT CXBHelp::Create(CHAR *strResource)
+{
+    (void)strResource;
+    m_pGamepadTexture = NULL;
+    m_pVB = NULL;
+    return E_NOTIMPL;
+}
+
+HRESULT CXBHelp::Destroy()
+{
+    m_pGamepadTexture = NULL;
+    m_pVB = NULL;
+    return S_OK;
+}
+
+HRESULT CXBHelp::Render(CXBFont *pFont, XBHELP_CALLOUT *tags,
+                        DWORD dwNumCallouts, FLOAT fOffsetX, FLOAT fOffsetY)
+{
+    (void)pFont; (void)tags; (void)dwNumCallouts;
+    (void)fOffsetX; (void)fOffsetY;
+    return E_NOTIMPL;
+}
+
+CXBHelp::CXBHelp()
+{
+    m_pGamepadTexture = NULL;
+    m_pVB = NULL;
+}
+
+CXBHelp::~CXBHelp()
+{
+    Destroy();
+}
+
+#else // _XBOX360 (OG vertex-buffer/XPR help path below)
+
 
 
 
@@ -271,3 +310,5 @@ HRESULT CXBHelp::Render( CXBFont* pFont, XBHELP_CALLOUT* tags,
 
 
 
+
+#endif // _XBOX360 (OG help path above)

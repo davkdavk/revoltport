@@ -17,6 +17,12 @@
 #include <cassert>
 #include "XBUtil.h"
 
+#ifdef _XBOX360
+// No game callers for these D3D8 utilities on 360 (verified: zero
+// references outside this file); implementation deferred. Timer needs are
+// covered by the M7 XTime work.
+#else
+
 
 
 
@@ -855,3 +861,5 @@ VOID XBUtil_GetWide( const CHAR* strThin, WCHAR* strWide, DWORD dwMax )
     assert( nChars == iWide - 1 );
     (VOID)iWide; // avoid compiler warning in release mode
 }
+
+#endif // _XBOX360 (D3D8 utilities excluded)

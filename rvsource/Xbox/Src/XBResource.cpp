@@ -15,6 +15,134 @@
 #include "XBResource.h"
 #include "debug.h"
 
+#ifdef _XBOX360
+// XPR bundle parsing and the OG shader-effect framework are replaced on 360
+// (M4.4: D3DX/XG resource pipeline + transformed-shader backend). These stubs
+// keep call sites compiling; resource loading resolves in M4.4 integration.
+DWORD XBResource_SizeOf(LPDIRECT3DRESOURCE8 pResource)
+{
+    (void)pResource;
+    return 0;
+}
+
+CXBPackedResource::CXBPackedResource()
+{
+    m_pSysMemData = NULL;
+    m_pVidMemData = NULL;
+    m_dwNumResources = 0;
+    m_pResourceTags = NULL;
+}
+
+CXBPackedResource::~CXBPackedResource()
+{
+    Destroy();
+}
+
+HRESULT CXBPackedResource::Create(const CHAR *strFilename, DWORD dwNumResources,
+                                  XBRESOURCETAG *pResourceTags)
+{
+    (void)strFilename; (void)dwNumResources; (void)pResourceTags;
+    return E_NOTIMPL;
+}
+
+HRESULT CXBPackedResource::PatchAll()
+{
+    return E_NOTIMPL;
+}
+
+VOID CXBPackedResource::Destroy()
+{
+    m_pSysMemData = NULL;
+    m_pVidMemData = NULL;
+    m_dwNumResources = 0;
+    m_pResourceTags = NULL;
+}
+
+VOID *CXBPackedResource::GetData(const CHAR *strName) const
+{
+    (void)strName;
+    return NULL;
+}
+
+XBResource::XBResource()
+{
+    m_dwNumResources = 0;
+    m_hfXPR = INVALID_HANDLE_VALUE;
+    m_cbHeaders = 0;
+    m_cbData = 0;
+    m_LoadingState = LOADING_NOTSTARTED;
+}
+
+XBResource::~XBResource()
+{
+    Unload();
+}
+
+HRESULT XBResource::StartLoading(LPSTR strFileBase)
+{
+    (void)strFileBase;
+    m_LoadingState = LOADING_FAILED;
+    return E_NOTIMPL;
+}
+
+HRESULT XBResource::Unload()
+{
+    m_LoadingState = LOADING_NOTSTARTED;
+    return S_OK;
+}
+
+HRESULT XBResource::OnIOComplete()
+{
+    return E_NOTIMPL;
+}
+
+HRESULT XBResource::Patch(DWORD dwType, BYTE *pHeader)
+{
+    (void)dwType; (void)pHeader;
+    return E_NOTIMPL;
+}
+
+HRESULT XBResource::Cleanup(DWORD dwType, BYTE *pHeader)
+{
+    (void)dwType; (void)pHeader;
+    return S_OK;
+}
+
+LOADINGSTATE XBResource::PollLoadingState()
+{
+    return m_LoadingState;
+}
+
+Effect *XBResource::GetEffect(const CHAR *strName) const
+{
+    (void)strName;
+    return NULL;
+}
+
+HRESULT VertexShader::SetVertexShader()
+{
+    return E_NOTIMPL;
+}
+
+HRESULT Effect::DrawEffect(VOID *rParameter, UINT ParameterCount)
+{
+    (void)rParameter; (void)ParameterCount;
+    return E_NOTIMPL;
+}
+
+HRESULT Effect::BeginDraw()
+{
+    return S_OK;
+}
+
+HRESULT Effect::EndDraw()
+{
+    return S_OK;
+}
+
+#else
+
+
 
 
 
@@ -1151,3 +1279,5 @@ HRESULT Effect::EndDraw()
     D3DDevice_SetVertexShaderInput(0, 0, 0);
     return S_OK;
 }
+
+#endif // _XBOX360 (XPR/effect stubs above; OG implementation below)

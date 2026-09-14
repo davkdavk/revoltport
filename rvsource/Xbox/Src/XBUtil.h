@@ -15,6 +15,14 @@
 #include <tchar.h>
 
 #ifdef _XBOX360
+// D3D8 resource-pointer names used by these declarations; the 360
+// equivalents come from d3d9.h (included via xtl.h in every TU).
+typedef LPDIRECT3DTEXTURE9 LPDIRECT3DTEXTURE8;
+typedef LPDIRECT3DCUBETEXTURE9 LPDIRECT3DCUBETEXTURE8;
+typedef LPDIRECT3DSURFACE9 LPDIRECT3DSURFACE8;
+#endif
+
+#ifdef _XBOX360
 // These declarations belong to the removed OG-Xbox utility layer. Keep the
 // headers source-compatible while 360 callers move to dx360_backend.
 typedef D3DDevice* LPDIRECT3DDEVICE8;
