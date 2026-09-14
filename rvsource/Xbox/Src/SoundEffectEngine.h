@@ -15,6 +15,7 @@
 #include <xtl.h>
 #ifdef _XBOX360
 #include <xaudio2.h>
+#include "../../../rv360/audio360_backend.h"
 struct IDirectSoundBuffer;
 typedef IDirectSoundBuffer* LPDIRECTSOUNDBUFFER;
 #else
