@@ -1,5 +1,6 @@
 #include "dx360_backend.h"
 #include <string.h>
+#include <stdio.h>
 
 #ifdef _XBOX360
 
@@ -56,6 +57,39 @@ void rv360_init_renderer(D3DDevice *device, DWORD width, DWORD height)
     (void)width;
     (void)height;
     g_rv360_device = device;
+    rv360_load_default_shaders();
+}
+
+static DWORD *rv360_read_shader(const char *filename, DWORD *size_bytes)
+{
+    FILE *file = fopen(filename, "rb");
+    if (!file) return NULL;
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    if (size <= 0 || (size & 3)) { fclose(file); return NULL; }
+    DWORD *data = (DWORD *)malloc((size_t)size);
+    if (!data || fread(data, 1, (size_t)size, file) != (size_t)size) {
+        free(data); fclose(file); return NULL;
+    }
+    fclose(file);
+    *size_bytes = (DWORD)size;
+    return data;
+}
+
+HRESULT rv360_load_default_shaders(void)
+{
+    if (!g_rv360_device) return E_FAIL;
+    DWORD vs_bytes = 0, ps_bytes = 0;
+    DWORD *vs = rv360_read_shader("game:\\rv360\\shaders\\transformed_vs.xvu", &vs_bytes);
+    DWORD *ps = rv360_read_shader("game:\\rv360\\shaders\\transformed_ps.xvu", &ps_bytes);
+    if (!vs || !ps) {
+        free(vs); free(ps);
+        return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
+    }
+    HRESULT hr = rv360_bind_transformed_pipeline(vs, ps);
+    free(vs); free(ps);
+    return hr;
 }
 
 void rv360_shutdown_renderer(void)

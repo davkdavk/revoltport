@@ -28,6 +28,7 @@ static inline void rv360_set_texture(DWORD stage, D3DBaseTexture *texture)
 }
 
 void rv360_init_renderer(D3DDevice *device, DWORD width, DWORD height);
+HRESULT rv360_load_default_shaders(void);
 void rv360_shutdown_renderer(void);
 void rv360_clear(DWORD color, DWORD flags);
 void rv360_present(void);

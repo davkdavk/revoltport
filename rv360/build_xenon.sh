@@ -55,5 +55,9 @@ if [[ ! -s "$build/default.xex" ]]; then
     printf 'Image tool reported success without producing an XEX.\n' >&2
     exit 1
 fi
+mkdir -p "$build/package/rv360/shaders"
+cp "$root/rv360/shaders/transformed_vs.xvu" "$build/package/rv360/shaders/"
+cp "$root/rv360/shaders/transformed_ps.xvu" "$build/package/rv360/shaders/"
+cp "$root/rv360/shaders/transformed2_ps.xvu" "$build/package/rv360/shaders/"
 wine "$sdk/bin/win32/imagexex.exe" /DUMP "$xex" > "$build/xex-info.txt" 2>&1
 printf 'Packaged development image (not runtime-validated): %s/default.xex\n' "$build"
