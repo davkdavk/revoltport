@@ -7,6 +7,9 @@ static IXAudio2 *g_rv360_audio = NULL;
 static IXAudio2MasteringVoice *g_rv360_master = NULL;
 static IXAudio2SourceVoice *g_rv360_voice = NULL;
 static BYTE *g_rv360_pcm_data = NULL;
+struct RV360_AUDIO_EFFECT { BYTE *data; DWORD bytes; DWORD rate; WORD channels; };
+static RV360_AUDIO_EFFECT g_rv360_effects[1024];
+static DWORD g_rv360_effect_count = 0;
 
 static DWORD rv360_read_le32(const BYTE *p)
 {
@@ -17,6 +20,43 @@ static DWORD rv360_read_le32(const BYTE *p)
 static WORD rv360_read_le16(const BYTE *p)
 {
     return (WORD)(p[0] | ((WORD)p[1] << 8));
+}
+
+static HRESULT rv360_read_wav_pcm16(const char *filename, BYTE **out_data,
+                                    DWORD *out_bytes, DWORD *out_rate,
+                                    WORD *out_channels)
+{
+    FILE *file = fopen(filename, "rb");
+    if (!file) return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
+    BYTE riff[12];
+    if (fread(riff, 1, sizeof(riff), file) != sizeof(riff) ||
+        memcmp(riff, "RIFF", 4) || memcmp(riff + 8, "WAVE", 4)) {
+        fclose(file); return E_FAIL;
+    }
+    WORD format = 0, channels = 0, bits = 0;
+    DWORD rate = 0, size = 0; long data_offset = 0; BYTE chunk[8];
+    while (fread(chunk, 1, sizeof(chunk), file) == sizeof(chunk)) {
+        DWORD chunk_size = rv360_read_le32(chunk + 4); long payload = ftell(file);
+        if (!memcmp(chunk, "fmt ", 4) && chunk_size >= 16) {
+            BYTE fmt[16]; if (fread(fmt, 1, 16, file) != 16) break;
+            format = rv360_read_le16(fmt); channels = rv360_read_le16(fmt + 2);
+            rate = rv360_read_le32(fmt + 4); bits = rv360_read_le16(fmt + 14);
+            fseek(file, payload + chunk_size, SEEK_SET);
+        } else if (!memcmp(chunk, "data", 4)) {
+            data_offset = payload; size = chunk_size; fseek(file, chunk_size, SEEK_CUR);
+        } else fseek(file, chunk_size, SEEK_CUR);
+        if (chunk_size & 1) fseek(file, 1, SEEK_CUR);
+    }
+    if (format != 1 || bits != 16 || !channels || !rate || !size) {
+        fclose(file); return E_NOTIMPL;
+    }
+    BYTE *data = (BYTE *)malloc(size);
+    if (!data) { fclose(file); return E_OUTOFMEMORY; }
+    fseek(file, data_offset, SEEK_SET);
+    BOOL ok = fread(data, 1, size, file) == size; fclose(file);
+    if (!ok) { free(data); return E_FAIL; }
+    *out_data = data; *out_bytes = size; *out_rate = rate; *out_channels = channels;
+    return S_OK;
 }
 
 HRESULT rv360_audio_init(void)
@@ -36,6 +76,8 @@ HRESULT rv360_audio_init(void)
 void rv360_audio_shutdown(void)
 {
     rv360_audio_stop();
+    for (DWORD i = 0; i < g_rv360_effect_count; i++) free(g_rv360_effects[i].data);
+    g_rv360_effect_count = 0;
     if (g_rv360_master) {
         g_rv360_master->DestroyVoice();
         g_rv360_master = NULL;
@@ -132,6 +174,48 @@ HRESULT rv360_audio_play_wav_file(const char *filename, BOOL looped)
     HRESULT hr = rv360_audio_play_pcm16(pcm, data_size, sample_rate, channels, looped);
     free(pcm);
     return hr;
+}
+
+HRESULT rv360_audio_load_xwp(const char *filename, DWORD *effect_offset)
+{
+    FILE *file = fopen(filename, "rb");
+    if (!file) return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
+    char directory[256], line[512];
+    strncpy(directory, filename, sizeof(directory) - 1); directory[sizeof(directory) - 1] = 0;
+    char *slash = strrchr(directory, '/'); char *backslash = strrchr(directory, '\\');
+    if (backslash > slash) slash = backslash;
+    if (slash) *(slash + 1) = 0; else directory[0] = 0;
+    DWORD offset = g_rv360_effect_count;
+    while (fgets(line, sizeof(line), file) && g_rv360_effect_count < 1024) {
+        if (strncmp(line, "ENTRY", 5)) continue;
+        char *relative = strchr(line, ','); if (!relative) continue;
+        relative++;
+        while (*relative == ' ' || *relative == '\t') relative++;
+        char *end = relative + strlen(relative);
+        while (end > relative && (end[-1] == '\r' || end[-1] == '\n')) *--end = 0;
+        for (char *p = relative; *p; p++) if (*p == '\\') *p = '/';
+        char path[512]; _snprintf(path, sizeof(path), "%s%s", directory, relative);
+        path[sizeof(path) - 1] = 0;
+        BYTE *data; DWORD bytes, rate; WORD channels;
+        if (SUCCEEDED(rv360_read_wav_pcm16(path, &data, &bytes, &rate, &channels))) {
+            g_rv360_effects[g_rv360_effect_count].data = data;
+            g_rv360_effects[g_rv360_effect_count].bytes = bytes;
+            g_rv360_effects[g_rv360_effect_count].rate = rate;
+            g_rv360_effects[g_rv360_effect_count].channels = channels;
+            g_rv360_effect_count++;
+        }
+    }
+    fclose(file);
+    if (effect_offset) *effect_offset = offset;
+    return S_OK;
+}
+
+HRESULT rv360_audio_play_effect(DWORD effect_index, BOOL looped)
+{
+    if (effect_index >= g_rv360_effect_count) return E_INVALIDARG;
+    RV360_AUDIO_EFFECT *effect = &g_rv360_effects[effect_index];
+    return rv360_audio_play_pcm16(effect->data, effect->bytes, effect->rate,
+                                  effect->channels, looped);
 }
 
 void rv360_audio_stop(void)

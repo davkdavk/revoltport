@@ -11,6 +11,8 @@ HRESULT rv360_audio_play_pcm16(const void *data, DWORD bytes,
                                DWORD sample_rate, WORD channels,
                                BOOL looped);
 HRESULT rv360_audio_play_wav_file(const char *filename, BOOL looped);
+HRESULT rv360_audio_load_xwp(const char *filename, DWORD *effect_offset);
+HRESULT rv360_audio_play_effect(DWORD effect_index, BOOL looped);
 void rv360_audio_stop(void);
 
 #endif

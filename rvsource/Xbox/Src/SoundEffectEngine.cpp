@@ -41,9 +41,11 @@ HRESULT CSoundEffectEngine::Initialize()
 
 HRESULT CSoundEffectEngine::LoadSounds(CHAR *strSoundFile, DWORD *pdwIndex)
 {
-    (void)strSoundFile;
-    if (pdwIndex) *pdwIndex = g_dwLevelSoundsOffset;
-    return S_OK;
+    if (!strSoundFile) return E_INVALIDARG;
+    char bank[260]; strncpy(bank, strSoundFile, sizeof(bank) - 1); bank[sizeof(bank) - 1] = 0;
+    char *extension = strrchr(bank, '.');
+    if (extension && !_stricmp(extension, ".sfx")) strcpy(extension, ".xwp");
+    return rv360_audio_load_xwp(bank, pdwIndex);
 }
 
 HRESULT CSoundEffectEngine::Unload()
@@ -95,6 +97,7 @@ HRESULT CSoundEffectEngine::Play2DSound(DWORD dwIndex, BOOL bLooping,
     if (!instance) return E_OUTOFMEMORY;
     instance->m_dwEffect = dwIndex;
     instance->m_apBuffers[0].bLooping = bLooping;
+    rv360_audio_play_effect(dwIndex, bLooping);
     if (ppInstance) *ppInstance = instance;
     return S_OK;
 }
