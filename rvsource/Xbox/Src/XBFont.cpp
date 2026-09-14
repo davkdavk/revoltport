@@ -43,6 +43,47 @@
 #include <stdio.h>
 #include "XBFont.h"
 
+#ifdef _XBOX360
+
+// The OG font renderer uses D3D8 vertex buffers/XPR resources. This 360
+// interim implementation keeps layout and text-measurement APIs alive; M4.4
+// replaces it with the transformed shader + texture backend.
+CXBFont::CXBFont()
+{
+    ZeroMemory(this, sizeof(*this));
+    m_dwFontHeight = 16;
+    m_fXScaleFactor = m_fYScaleFactor = 1.0f;
+}
+
+CXBFont::~CXBFont() { Destroy(); }
+VOID CXBFont::SetScaleFactors(FLOAT x, FLOAT y) { m_fXScaleFactor = x; m_fYScaleFactor = y; }
+VOID CXBFont::SetSlantFactor(FLOAT value) { m_fSlantFactor = value; }
+HRESULT CXBFont::Create(const CHAR*) { return S_OK; }
+HRESULT CXBFont::Destroy() { return S_OK; }
+HRESULT CXBFont::Begin() { return S_OK; }
+HRESULT CXBFont::End() { return S_OK; }
+HRESULT CXBFont::Render() { return S_OK; }
+HRESULT CXBFont::DrawText(DWORD, const WCHAR*, DWORD, FLOAT) { return S_OK; }
+HRESULT CXBFont::DrawText(FLOAT, FLOAT, DWORD, const WCHAR*, DWORD, FLOAT) { return S_OK; }
+FLOAT CXBFont::GetTextWidth(const WCHAR *text) const
+{
+    if (!text) return 0.0f;
+    FLOAT width = 0.0f;
+    while (*text++) width += 8.0f * m_fXScaleFactor;
+    return width;
+}
+HRESULT CXBFont::GetTextExtent(const WCHAR *text, FLOAT *width,
+                               FLOAT *height, BOOL) const
+{
+    if (width) *width = GetTextWidth(text);
+    if (height) *height = m_dwFontHeight * m_fYScaleFactor;
+    return S_OK;
+}
+LPDIRECT3DTEXTURE8 CXBFont::CreateTexture(const WCHAR*, D3DCOLOR, D3DCOLOR, D3DFORMAT)
+{ return NULL; }
+
+#else
+
 #include "dx.h"  //$TODO(cprince): remove this if we decide not to use Acclaim macros for setting render states.
 
 
@@ -705,3 +746,5 @@ LPDIRECT3DTEXTURE8 CXBFont::CreateTexture( const WCHAR* strText,
 
 
 
+
+#endif // _XBOX360 (OG font renderer below)

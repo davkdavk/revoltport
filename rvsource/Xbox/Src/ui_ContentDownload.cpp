@@ -5,6 +5,10 @@
 //
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
+#ifdef _XBOX360
+// Downloadable-content UI is Live-only and excluded from offline 360 bring-up.
+int rv360_ui_content_download_disabled = 0;
+#else
 #include "revolt.h"
 #include "Settings.h"
 #include "Text.h"
@@ -1757,3 +1761,5 @@ HRESULT COptionalDownloadEngine::Process()
 
     
 
+
+#endif // _XBOX360 (Live-only UI excluded from offline build)

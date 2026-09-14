@@ -6,6 +6,10 @@
 // Re-Volt (Generic) Copyright (c) Probe Entertainment 1998
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
+#ifdef _XBOX360
+// OG XOnline sign-in UI is excluded; offline boot skips Live sign-in.
+int rv360_ui_live_signin_disabled = 0;
+#else
 #include "revolt.h"
 #include "XBOnline.h"
 #include "XBFont.h"
@@ -1913,3 +1917,5 @@ HRESULT CLiveSignOutStateEngine::Process()
 
 
 
+
+#endif // _XBOX360 (Live-only UI excluded from offline build)

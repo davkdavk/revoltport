@@ -10,6 +10,10 @@
 #ifdef SHIPPING
 // Shipping version does not need exporter code.
 #else
+#ifdef _XBOX360
+// XDX is an offline OG-Xbox exporter, not part of the 360 runtime build.
+int rv360_xdx_disabled = 0;
+#else
 #pragma warning(disable: 4786)  // STL identifier truncation
 
 #include <xtl.h>
@@ -3058,4 +3062,5 @@ HRESULT ExportCar(CAR *pCar, CAR_INFO *pCarInfo, CAR_MODEL *pCarModel, INT Tpage
 }
 */
 
+#endif // _XBOX360
 #endif // !SHIPPING

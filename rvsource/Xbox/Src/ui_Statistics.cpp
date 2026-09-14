@@ -5,6 +5,10 @@
 //
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //-----------------------------------------------------------------------------
+#ifdef _XBOX360
+// Online statistics UI is excluded from offline 360 bring-up.
+int rv360_ui_statistics_disabled = 0;
+#else
 #include "revolt.h"
 #include <string.h>
 #include "dx.h"
@@ -1577,3 +1581,5 @@ void CUIStatsUserSummary::Draw()
     }
 }
 
+
+#endif // _XBOX360 (Live-only UI excluded from offline build)
