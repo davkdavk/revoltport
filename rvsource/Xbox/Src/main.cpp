@@ -567,7 +567,14 @@ void __cdecl main(void)
     sprintf(DBG_TempPath, "D:\\revolt.log");
 //$END_MODIFICATIONS
     DBG_LogFile = DBG_TempPath;
+#ifdef _XBOX360
+    OutputDebugStringA("[RV360] startup: initializing log\n");
+#endif
     InitLogFile();
+#ifdef _XBOX360
+    WriteLogEntry("[RV360] startup: log initialized (path-recursion fix)\n");
+    OutputDebugStringA("[RV360] startup: log initialized\n");
+#endif
 
 //$MODIFIED - Direct3D initialization is done before everything else, so we can
 //            quickly display a splash screen
@@ -576,10 +583,22 @@ void __cdecl main(void)
 //        QuitGame();
 //    }
 
+#ifdef _XBOX360
+    WriteLogEntry("[RV360] startup: entering InitD3D\n");
+    OutputDebugStringA("[RV360] startup: entering InitD3D\n");
+#endif
     if( !InitD3D( 640, 480, 32, XBOX_UNUSED_PARAM ) )
     {
+#ifdef _XBOX360
+        WriteLogEntry("[RV360] startup: InitD3D failed\n");
+        OutputDebugStringA("[RV360] startup: InitD3D failed\n");
+#endif
         QuitGame();
     }
+#ifdef _XBOX360
+    WriteLogEntry("[RV360] startup: InitD3D returned\n");
+    OutputDebugStringA("[RV360] startup: InitD3D returned\n");
+#endif
 //$END_MODIFICATION
 
 //$ADDITION - initialize framerate tracker
@@ -610,7 +629,13 @@ void __cdecl main(void)
 // get registry settings
 
     InitGameSettings();
+#ifdef _XBOX360
+    WriteLogEntry("[RV360] startup: loading settings\n");
+#endif
     GetRegistrySettings();
+#ifdef _XBOX360
+    WriteLogEntry("[RV360] startup: settings loaded\n");
+#endif
 
 //$MODIFIED - This was moved from InitD3D(), so that we can use the values
 //            from the registry

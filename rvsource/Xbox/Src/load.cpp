@@ -17,6 +17,10 @@
 #include <xtl.h>
 //$END_MODIFICATIONS
 #include <stdio.h>
+#ifdef _XBOX360
+#include <errno.h>
+#include <string.h>
+#endif
 
 #ifdef _XBOX360
 static const char *RV360_MapPath(const char *filename, char mapped[MAX_PATH])
@@ -46,9 +50,28 @@ extern char *DBG_LogFile;
 FILE *BKK_fopen(const char *filename, const char *mode)
 {
 #ifdef _XBOX360
+    if (!filename || !mode) {
+        errno = EINVAL;
+        return NULL;
+    }
     char mapped[MAX_PATH];
     filename = RV360_MapPath(filename, mapped);
-#endif
+    FILE *fp = fopen(filename, mode);
+
+    // Compare paths in the same namespace. Logging an open of the log itself
+    // otherwise recurses through WriteLogEntry -> BKK_fopen indefinitely.
+    char mapped_log[MAX_PATH];
+    const char *logfile = RV360_MapPath(DBG_LogFile, mapped_log);
+    if (logfile && _stricmp(filename, logfile))
+    {
+        char buf[MAX_PATH + 64];
+        _snprintf(buf, sizeof(buf), "Loading: %s: %s\n", filename, fp ? "Found" : "Not Found");
+        buf[sizeof(buf) - 1] = 0;
+        WriteLogEntry(buf);
+    }
+    strncpy(LastFile, filename, MAX_PATH - 1);
+    LastFile[MAX_PATH - 1] = 0;
+#else
     FILE *fp = fopen(filename, mode);
 
     if (_stricmp(filename, DBG_LogFile)) //$MODIFIED: changed stricmp to _stricmp
@@ -59,6 +82,7 @@ FILE *BKK_fopen(const char *filename, const char *mode)
     }
 
     strncpy(LastFile, filename, MAX_PATH);
+#endif
 
     return fp;
 }
