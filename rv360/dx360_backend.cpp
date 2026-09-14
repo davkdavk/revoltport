@@ -28,8 +28,10 @@ static void rv360_push_fog_constant(void)
 static D3DVertexBuffer *g_rv360_vertex_buffer = NULL;
 static D3DIndexBuffer *g_rv360_index_buffer = NULL;
 static D3DVertexDeclaration *g_rv360_vertex_declaration = NULL;
+static D3DVertexDeclaration *g_rv360_vertex_declaration2 = NULL;
 static D3DVertexShader *g_rv360_vertex_shader = NULL;
 static D3DPixelShader *g_rv360_pixel_shader = NULL;
+static D3DPixelShader *g_rv360_pixel_shader2 = NULL;
 static const DWORD RV360_VERTEX_BUFFER_BYTES = 1024 * 1024;
 static const DWORD RV360_INDEX_BUFFER_BYTES = 256 * 1024;
 
@@ -118,6 +120,74 @@ void rv360_unbind_transformed_pipeline(void)
         D3DPixelShader_Release(g_rv360_pixel_shader);
         g_rv360_pixel_shader = NULL;
     }
+    if (g_rv360_vertex_declaration2) {
+        D3DVertexDeclaration_Release(g_rv360_vertex_declaration2);
+        g_rv360_vertex_declaration2 = NULL;
+    }
+    if (g_rv360_pixel_shader2) {
+        D3DPixelShader_Release(g_rv360_pixel_shader2);
+        g_rv360_pixel_shader2 = NULL;
+    }
+}
+
+HRESULT rv360_bind_transformed2_pipeline(const DWORD *vertex_shader_code,
+                                         const DWORD *pixel_shader_code)
+{
+    if (!g_rv360_device || !vertex_shader_code || !pixel_shader_code)
+        return E_INVALIDARG;
+
+    static const D3DVERTEXELEMENT9 elements[] = {
+        { 0,  0, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT,
+          D3DDECLUSAGE_POSITION, 0 },
+        { 0, 16, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT,
+          D3DDECLUSAGE_COLOR, 0 },
+        { 0, 20, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT,
+          D3DDECLUSAGE_COLOR, 1 },
+        { 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT,
+          D3DDECLUSAGE_TEXCOORD, 0 },
+        { 0, 32, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT,
+          D3DDECLUSAGE_TEXCOORD, 1 },
+        D3DDECL_END()
+    };
+
+    if (!g_rv360_vertex_declaration2)
+        g_rv360_vertex_declaration2 = D3DDevice_CreateVertexDeclaration(elements);
+    if (!g_rv360_vertex_shader)
+        g_rv360_vertex_shader = D3DDevice_CreateVertexShader(vertex_shader_code);
+    if (!g_rv360_pixel_shader2)
+        g_rv360_pixel_shader2 = D3DDevice_CreatePixelShader(pixel_shader_code);
+
+    if (!g_rv360_vertex_declaration2 || !g_rv360_vertex_shader ||
+        !g_rv360_pixel_shader2)
+        return E_OUTOFMEMORY;
+
+    D3DDevice_SetVertexDeclaration(g_rv360_device, g_rv360_vertex_declaration2);
+    D3DDevice_SetVertexShader(g_rv360_device, g_rv360_vertex_shader);
+    D3DDevice_SetPixelShader(g_rv360_device, g_rv360_pixel_shader2);
+    return S_OK;
+}
+
+#define RV360_TEX2_STRIDE 40
+
+HRESULT rv360_draw_TEX2_vertices_up(D3DPRIMITIVETYPE primitive,
+                                    const void *vertices, DWORD vertex_count)
+{
+    if (!vertices || !vertex_count) return E_INVALIDARG;
+    if (vertex_count > RV360_VERTEX_BUFFER_BYTES / RV360_TEX2_STRIDE)
+        return E_OUTOFMEMORY;
+    if (rv360_ensure_draw_buffers() != S_OK) return E_FAIL;
+
+    const DWORD bytes = RV360_TEX2_STRIDE * vertex_count;
+    void *destination = D3DVertexBuffer_Lock(g_rv360_vertex_buffer, 0, bytes, 0);
+    if (!destination) return E_FAIL;
+    memcpy(destination, vertices, bytes);
+    D3DVertexBuffer_Unlock(g_rv360_vertex_buffer);
+
+    D3DDevice_SetStreamSource(g_rv360_device, 0, g_rv360_vertex_buffer,
+                              0, RV360_TEX2_STRIDE, 0);
+    rv360_push_fog_constant();
+    D3DDevice_DrawVertices(g_rv360_device, primitive, 0, vertex_count);
+    return S_OK;
 }
 
 void rv360_clear(DWORD color, DWORD flags)

@@ -28,6 +28,7 @@ TransformedPixel transformed_vs(TransformedVertex input)
 }
 
 sampler Texture0 : register(s0);
+sampler Texture1 : register(s1);
 
 // Fog color pushed per draw by rv360_push_fog_constant (from FOG_COLOR).
 // Fog factor arrives in specular alpha: the game bakes per-vertex fog on the
@@ -38,5 +39,15 @@ float4 FogColor : register(c0);
 float4 transformed_ps(TransformedPixel input) : COLOR0
 {
     float4 tex = tex2D(Texture0, input.Tex0) * input.Diffuse;
+    return lerp(tex, FogColor, input.Specular.a);
+}
+
+// Dual-texture variant for the pickup-flash effect (panel.cpp): replaces the
+// fixed-function SUBTRACT combiner (stage1 texture minus current).
+float4 transformed2_ps(TransformedPixel input) : COLOR0
+{
+    float4 t0 = tex2D(Texture0, input.Tex0);
+    float4 t1 = tex2D(Texture1, input.Tex1);
+    float4 tex = (t0 - t1) * input.Diffuse;
     return lerp(tex, FogColor, input.Specular.a);
 }

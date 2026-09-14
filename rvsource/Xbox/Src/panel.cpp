@@ -1490,6 +1490,10 @@ return;
     SET_TPAGE(TPAGE_FX1);
     SET_TPAGE2(TPAGE_FX2);
 
+#ifdef _XBOX360
+    // Dual-texture subtract via the TEX2 backend path (40-byte stride).
+    rv360_draw_TEX2_vertices_up(D3DPT_TRIANGLEFAN, DrawVertsTEX2, 4);
+#else
     SET_STAGE_STATE(1, D3DTSS_TEXCOORDINDEX, 1);
     SET_STAGE_STATE(1, D3DTSS_COLORARG1, D3DTA_TEXTURE);
     SET_STAGE_STATE(1, D3DTSS_COLORARG2, D3DTA_CURRENT);
@@ -1498,6 +1502,7 @@ return;
     DRAW_PRIM(D3DPT_TRIANGLEFAN, FVF_TEX2, DrawVertsTEX2, 4, D3DDP_DONOTUPDATEEXTENTS);
 
     SET_STAGE_STATE(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
+#endif
 
     BLEND_ON();
     BLEND_SRC(D3DBLEND_ONE);
@@ -1909,7 +1914,11 @@ void DisplayPlayers(void)
         {
             player->pNameTexture = g_pFont->CreateTexture( strPlayerName, 0x00000000, dwColor );
         }
+#ifdef _XBOX360
+        rv360_set_texture(0, player->pNameTexture);
+#else
         D3DDevice_SetTexture( 0, player->pNameTexture );
+#endif
 
         // Compute some vector positioning numbers
         D3DSURFACE_DESC desc;

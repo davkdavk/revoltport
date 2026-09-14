@@ -39,6 +39,13 @@ void rv360_set_sampler_linear(DWORD stage, BOOL mipmapped, BOOL anisotropic);
 HRESULT rv360_bind_transformed_pipeline(const DWORD *vertex_shader_code,
                                         const DWORD *pixel_shader_code);
 void rv360_unbind_transformed_pipeline(void);
+// Dual-texture variant (40-byte stride, second UV set) for the pickup-flash
+// effect. Caller binds both textures; backend binds the TEX2 declaration,
+// shaders, uploads, and draws.
+HRESULT rv360_bind_transformed2_pipeline(const DWORD *vertex_shader_code,
+                                         const DWORD *pixel_shader_code);
+HRESULT rv360_draw_TEX2_vertices_up(D3DPRIMITIVETYPE primitive,
+                                    const void *vertices, DWORD vertex_count);
 
 // Upload-and-draw bridge for replacing the OG Xbox Draw*UP macros. The caller
 // supplies the already-transformed vertex bytes and their stride; shader and

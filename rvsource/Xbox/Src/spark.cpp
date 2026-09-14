@@ -1712,7 +1712,7 @@ void DrawSparkTrail(TRAIL *trail)
         }
 
         // draw the poly
-        DRAW_PRIM(D3DPT_TRIANGLEFAN, FVF_TEX1, poly.Verts, poly.VertNum, poly.DrawFlag);
+        DRAW_PRIM(D3DPT_TRIANGLEFAN, FVF_TEX1, poly.Verts, poly.VertNum, 0);
 
         // copy last to next
         ePos.sx = sPos.sx;
