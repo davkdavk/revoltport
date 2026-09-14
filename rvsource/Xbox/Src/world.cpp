@@ -731,10 +731,17 @@ void FreeWorld(void)
         free(World.BigCubeList);
         
         // Make sure none of the textures are being used
+#ifdef _XBOX360
+        rv360_set_texture(0, NULL);
+        rv360_set_texture(1, NULL);
+        rv360_set_texture(2, NULL);
+        rv360_set_texture(3, NULL);
+#else
         D3DDevice_SetTexture(0, 0);
         D3DDevice_SetTexture(1, 0);
         D3DDevice_SetTexture(2, 0);
         D3DDevice_SetTexture(3, 0);
+#endif
 
         // Unload the resources
         delete World.m_pXBR;

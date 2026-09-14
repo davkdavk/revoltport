@@ -1470,9 +1470,11 @@ bool LoadGridInfo(FILE *fp)
 
         // Get number of polys in this grid volume
 #ifdef _XBOX360
-        { uint32_t nc; if (rv_fread_u32le(&nc, fp) < 1) { DestroyCollGrids();
+        { uint32_t nc; if (rv_fread_u32le(&nc, fp) < 1)
 #else
-        if (fread(&COL_CollGrid[iGrid].NCollPolys, sizeof(COL_CollGrid[iGrid].NCollPolys), 1, fp) < 1) {
+        if (fread(&COL_CollGrid[iGrid].NCollPolys, sizeof(COL_CollGrid[iGrid].NCollPolys), 1, fp) < 1)
+#endif
+        {
             DestroyCollGrids();
             DestroyCollPolys(COL_WorldCollPoly);
             COL_WorldCollPoly = NULL;
@@ -1540,9 +1542,11 @@ bool LoadGridInfo(FILE *fp)
         // Fill the pointer array with pointers to polys in grid volume
         for (iPoly = 0; iPoly < COL_CollGrid[iGrid].NCollPolys; iPoly++) {
 #ifdef _XBOX360
-            { uint32_t ile; if (rv_fread_u32le(&ile, fp) < 1) { DestroyCollGrids();
+            { uint32_t ile; if (rv_fread_u32le(&ile, fp) < 1)
 #else
-            if (fread(&index, sizeof(index), 1, fp) < 1) {
+            if (fread(&index, sizeof(index), 1, fp) < 1)
+#endif
+            {
                 DestroyCollGrids();
                 DestroyCollPolys(COL_WorldCollPoly);
                 COL_WorldCollPoly = NULL;

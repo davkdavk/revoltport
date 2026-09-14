@@ -510,7 +510,7 @@ bool LoadMipTexture(char *tex, int tpage, long width, long height, long stage, l
 //    unsigned short cols, miploop;
 //$END_REMOVAL
 
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
 // sepia?
 
     sepia = (RenderSettings.Sepia && tpage != TPAGE_FONT && tpage != TPAGE_SPRU);
@@ -701,7 +701,7 @@ bool LoadMipTexture(char *tex, int tpage, long width, long height, long stage, l
 //
 //        mipsource->ReleaseDC(dc);
 //        DeleteDC(dcimage);
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
 // set alpha
 
         dcimage = CreateCompatibleDC(NULL);
@@ -976,7 +976,7 @@ bool CreateProceduralTexture(int tpage, long width, long height)
     if (TexInfo[tpage].Active)
         FreeOneTexture(tpage);
 
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
 // create texture source surface
 
     ZeroMemory(&ddsd2, sizeof(ddsd2));

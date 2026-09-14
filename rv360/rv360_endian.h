@@ -6,7 +6,16 @@
 // No xtl.h / xdk headers required — compiles on PC too for testing.
 
 #include <stdio.h>
+#if defined(_XBOX360) && !defined(RV360_HAVE_STDINT)
+// The Xenon toolchain predates C99 stdint.h; MSVC intrinsics cover it.
+typedef unsigned __int16 uint16_t;
+typedef unsigned __int32 uint32_t;
+typedef unsigned __int64 uint64_t;
+typedef __int16 int16_t;
+typedef __int32 int32_t;
+#else
 #include <stdint.h>
+#endif
 #include <string.h>
 
 #if defined(_XBOX360) || defined(__PPC__) || defined(_PPC_)

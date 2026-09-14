@@ -17,17 +17,13 @@
 // exposes D3DDevice; this alias is temporary while dx.cpp moves to explicit
 // D3DDevice_* calls.
 typedef D3DDevice IDirect3DDevice3;
-// FVF codes and draw-prim flags are consumed by DRAW_PRIM only as opaque
-// arguments on 360 (the backend uploads raw strides). Define them so call
-// sites parse; they carry no meaning to the backend.
+// Draw-prim flags are consumed by DRAW_PRIM only as opaque arguments on 360
+// (the backend uploads raw strides). FVF codes already exist in the 360 XDK;
+// only define what is genuinely missing so call sites parse.
 #ifndef D3DFVF_XYZRHW
-#define D3DFVF_XYZRHW 0
-#define D3DFVF_XYZ 0
-#define D3DFVF_DIFFUSE 0
-#define D3DFVF_SPECULAR 0
-#define D3DFVF_TEX0 0
-#define D3DFVF_TEX1 0
-#define D3DFVF_TEX2 0
+#define D3DFVF_XYZRHW 0x004
+#endif
+#ifndef D3DDP_DONOTUPDATEEXTENTS
 #define D3DDP_DONOTUPDATEEXTENTS 0
 #define D3DDP_DONOTCLIP 0
 #endif
