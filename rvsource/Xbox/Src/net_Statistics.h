@@ -9,6 +9,13 @@
 #ifndef NET_STATISTICS_H
 #define NET_STATISTICS_H
 
+#ifdef _XBOX360
+// Offline statistics on 360 until the Live stats rewrite (M3.4/M7).
+#ifndef XONLINE_OFFLINE
+#define XONLINE_OFFLINE 1
+#endif
+#endif
+
 #include "RatingEquation.h"
 #include "InitPlay.h"
 
@@ -23,18 +30,18 @@ const DWORD STAT_LB_RACING_OVERALL  =  1;
 const DWORD STAT_LB_BATTLE_OVERALL  =  2;
 const DWORD STAT_LB_FIRST_TRACK     = 1000;
 
-inline LeaderBoardID( int nLevel )
+inline DWORD LeaderBoardID( int nLevel )
 {
     Assert( (nLevel >= 0) && (nLevel < LEVEL_NSHIPPED_LEVELS) );
     return nLevel + STAT_LB_FIRST_TRACK;
 }
 
-inline IsTrack( DWORD dwLeaderBoardID )
+inline BOOL IsTrack( DWORD dwLeaderBoardID )
 {
     return (dwLeaderBoardID >= STAT_LB_FIRST_TRACK) && (dwLeaderBoardID < STAT_LB_FIRST_TRACK + LEVEL_NSHIPPED_LEVELS);
 }
 
-inline TrackLevel( DWORD dwLeaderBoardID )
+inline DWORD TrackLevel( DWORD dwLeaderBoardID )
 {
     Assert( IsTrack(dwLeaderBoardID ) );
     return dwLeaderBoardID - STAT_LB_FIRST_TRACK;
@@ -124,6 +131,47 @@ extern CXOnlineTasks g_XOnlineTasks;
 
 #define XONLINESTATSERROR( hr) ShowXStatsError( __LINE__, hr)
 extern void ShowXStatsError( int nLineNumber, HRESULT hr );
+
+#ifdef _XBOX360
+// Offline statistics stubs: the Live leaderboard/task cluster below is
+// deferred to the Live rewrite (M3.4/M7). These preserve the names used by
+// net_Statistics.cpp and the UI so offline single-player builds and runs.
+class CStatAdjustMatchesStarted : public CXOnlineTask
+{
+public:
+    HRESULT Reset(DWORD dwLeaderBoardID, int nOffset)
+    { (void)dwLeaderBoardID; (void)nOffset; return S_OK; }
+    HRESULT AddLocalPlayer(XUID xuid)
+    { (void)xuid; return S_OK; }
+    HRESULT BeginStatUpdate() { return S_OK; }
+    virtual HRESULT TaskContinue() { return S_OK; }
+};
+
+class CStatUpdateEndgamePlayerStats : public CXOnlineTask
+{
+public:
+    HRESULT BeginStatUpdate() { return S_OK; }
+    virtual HRESULT TaskContinue() { return S_OK; }
+};
+
+class CStatRacerCache
+{
+public:
+    void PurgeStats() {}
+};
+
+class CStatBattlerCache
+{
+public:
+    void PurgeStats() {}
+};
+
+class CStatUserTrackRanksCache
+{
+public:
+    void PurgeStats() {}
+};
+#else
 
 
 class CStatFriendsList : public CXOnlineTask
@@ -2254,6 +2302,7 @@ public:
 extern CStatRacerCache          g_RacerStats;
 extern CStatBattlerCache        g_BattlerStats;
 extern CStatUserTrackRanksCache g_UserTrackRanks;
+#endif // _XBOX360 (Live leaderboard cluster above is OG-only)
 
 extern void StatsLocalPlayersStartingMatch();
 extern void StatsLocalPlayersExitingMatch();

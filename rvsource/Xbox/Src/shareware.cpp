@@ -213,7 +213,7 @@ void ProcessSharewareIntro()
     // Draw image
     //DrawSharewarePage();
     if ((GetFadeEffect() != FADE_UP_DONE) && (GetFadeEffect() != FADE_DOWN_DONE)) {
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
         BlitBitmap(gSharewareHbm[gSharewareImage], &BackBuffer);
 #endif
     }
@@ -239,7 +239,7 @@ void ReleaseSharewareIntro()
     long ii;
 
     for (ii = 0; ii < gSharewareCount; ii++) {
-#ifndef XBOX_NOT_YET_IMPLEMENTED
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
         FreeBitmap(gSharewareHbm[ii]);
 #endif
     }

@@ -14,7 +14,12 @@
 #include "SoundBank.h"
 #include "debug.h"
 
-// TODO (JHarding): Need to think about how to handle swapping different DSP 
+#ifdef _XBOX360
+// DirectSound buffer pool replaced by XAudio2 voices (M5); the 360 sound
+// engine does not use CSoundBank. Kept compiling as an empty unit.
+#else
+
+// TODO (JHarding): Need to think about how to handle swapping different DSP
 // images in/out
 #include <dsstdfx.h>
 
@@ -755,3 +760,5 @@ HRESULT CSoundBank::ValidateStateDbg()
 #endif // _DEBUG
 
 
+
+#endif // _XBOX360 (DirectSound pool excluded; XAudio2 in M5)

@@ -77,8 +77,12 @@ void StatsLocalPlayersAdjustMatchesStarted( int nOffset )
 
     if( IsLoggedIn( 0 ) )
     {
+#ifdef _XBOX360
+        // No Live users offline; local-player stat attribution deferred (M7).
+#else
         PLAYER* pPlayer = &Players[0]; //GetPlayerFromPlayerID( LocalPlayerID );
         g_StatAdjustMatchesStarted.AddLocalPlayer( pPlayer->XOnlineInfo.pXOnlineUser->xuid );
+#endif
     }
 
     g_StatAdjustMatchesStarted.BeginStatUpdate();
