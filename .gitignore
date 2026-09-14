@@ -1,0 +1,50 @@
+# Original archive and extraction tooling
+*.rar
+*.tar.gz
+rar/
+
+# Extracted/generated game assets and packed binaries
+rvsource/PC/assets/
+rvsource/PC/
+rvsource/Xbox/art/
+rvsource/RV_MESHES/
+rvsource/Gallery/
+rvsource/tracks/
+rvsource/wavs/
+rvsource/levels/
+rvsource/models/
+rvsource/cars/
+rvsource/gfx/
+rvsource/A-revolt/
+rvsource/"A Re-volt"/
+rvsource/strings/
+rvsource/source/lib/
+rvsource/*.001
+rvsource/*.002
+rvsource/**/*.xpr
+rvsource/**/*.xpr.*
+rvsource/**/*.xpr
+rvsource/**/*.xwp
+rvsource/**/*.xdx
+rvsource/**/*.bmq
+rvsource/**/*.prm
+rvsource/**/*.wav
+rvsource/**/*.wma
+rvsource/**/*.avi
+rvsource/**/*.zip
+
+# Old binaries and IDE state
+rvsource/**/*.exe
+rvsource/**/*.dll
+rvsource/**/*.lib
+rvsource/**/*.obj
+rvsource/**/*.ncb
+rvsource/**/*.opt
+rvsource/**/*.plg
+rvsource/**/*.scc
+
+# Local compiler output
+*.obj
+*.pdb
+*.ilk
+*.log
