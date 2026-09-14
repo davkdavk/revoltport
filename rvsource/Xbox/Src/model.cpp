@@ -3176,7 +3176,7 @@ long LoadOneLevelModel(long id, long flag, struct renderflags renderflag, long t
 			{
                 LoadModelGPU(buf, &LevelModel[i].Model, 1, World.m_pXBR);
 			}
-#ifdef SHIPPING
+#if defined(SHIPPING) || defined(_XBOX360)
 // Shipping version does not need exporter code.
 #else
             else

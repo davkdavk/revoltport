@@ -944,7 +944,7 @@ void SetupCar(struct PlayerStruct *player, int carType)
 #endif
 
 //$ADDITION_BEGIN(jedl) - export car
-#ifdef SHIPPING
+#if defined(SHIPPING) || defined(_XBOX360)
 // Shipping version does not need exporter code.
 #else
 	if ( ((player->type != PLAYER_GHOST) || GHO_ShowGhost)

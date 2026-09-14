@@ -809,7 +809,7 @@ bool LoadTrackDataStageTwo()
     IncLoadThreadUnitCount();
 
 //$ADDITION(jedl) - export world if not yet bundled
-#ifdef SHIPPING
+#if defined(SHIPPING) || defined(_XBOX360)
 // Shipping version does not need exporter code.
 #else
     //$REVISIT: Jed, is this the right place to export the world?  Could do in StageOne, but static level models won't be loaded yet...

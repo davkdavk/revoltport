@@ -31,8 +31,10 @@
 // This is useful for making sure functions don't get optimized-out when
 // linking.  It ensures you'll be able to call the functions via the debugger
 // watch window, even if you never called the routines in your code.
+#ifndef _XBOX360
 #pragma comment( linker, "/include:_DebugPixels" )
 #pragma comment( linker, "/include:_DebugRenderState" )
+#endif
 
 
 #ifdef __cplusplus

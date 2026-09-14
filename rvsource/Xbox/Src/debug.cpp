@@ -423,14 +423,22 @@ void SetupFPUExceptions( bool bEnableExceptions )
 //      | _EM_DENORMAL   // denormalized (tiny) operand <<x86 only>>
     );
 
+#ifdef _XBOX360
+    unsigned int ctrlword = _controlfp(0, 0);
+#else
     unsigned int ctrlword = _control87(0,0);  // get old FPU control word value
+#endif
 
     if( bEnableExceptions )
         ctrlword &= ~(exception_mask);
     else
         ctrlword |= (exception_mask);
 
+#ifdef _XBOX360
+    _controlfp(ctrlword, MCW_EM);
+#else
     _control87(ctrlword,MCW_EM);  // set new FPU control word (exception part only)
+#endif
 }
 //$ADDITION_END
 

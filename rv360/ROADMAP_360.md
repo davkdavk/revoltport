@@ -1,6 +1,18 @@
 # Re-Volt Xbox 360 Port — Full Roadmap (XDK route)
 
 Base: `rvsource/Xbox/Src/` (OG Xbox). Target: 360 XDK, Xenia + RGH test.
+
+## Current Verified Status
+
+- A fresh release build compiles 136 objects, links with no unresolved symbols,
+  and packages a development `default.xex`. Run `bash rv360/build_xenon.sh`.
+- This is not a playable port yet. No emulator or hardware boot has been verified.
+- Earlier work-log statements claiming full M2/M5 completion were premature:
+  compile success includes stubs and does not establish gameplay correctness.
+- Remaining runtime work includes shader startup/vertex-format correctness,
+  real font and resource loading, asset/save paths, concurrent SFX and music,
+  and loader error handling. Live/DLC/voice remain explicitly unavailable.
+
 Rule: additive work in `rv360/` first; touch the leak only with `_XBOX360`-guarded includes.
 Disk data + wire protocol are little-endian x86; Xenon is big-endian PPC.
 
@@ -43,7 +55,7 @@ Files: `Xbox/Src/network.h/.cpp` (`MSG_TYPE/MSG_TYPE_EXT`, `pshpack1` structs:15
 - [x] M3.1 wire-order policy decided + header routed through it
   - Done 2026-09-13 in `Xbox/Src/network.cpp`: `MSG_HEADER_TCP.Size` now goes through `RV360_TCP_SIZE_GET/SET` (4 sites: `SetSendMsgHeaderTcp`, `GetSingleMessageTCP`, 2x `ProcessMessage` dispatch).
   - `MSG_HEADER`/`MSG_HEADER_EXT` need no work: `TypeAndID`/`ExtendedType` are single bytes (`PackMsgTypeAndID` packs type+ID into one BYTE).
-  - **Policy**: default = native byte order → 360↔360 system link works out of the box. `-DRV360_NET_LE_WIRE` = canonical LE for PC cross-play, which requires converting *every* field of *every* packet struct (they are blitted raw). Half-converting is worse than either.
+   - **Policy proposal only**: native byte order alone does not provide system link. The current 360 build uses an offline network stub. Cross-play would require a fully specified wire format and real transport implementation.
 - [ ] M3.2 (only if cross-play wanted) full LE serialize for `NET_PLAYER`, `NET_SESSION`, `RESTART_DATA`, `JOIN_INFO`, `RACE_TIME_INFO`, car/weapon/object payloads + `REMOTE_QUAT/VEL/ANGVEL_SCALE` quant paths
 - [ ] M3.3 Replace `pshpack1/poppack` dependency with explicit `#pragma pack` + compile-time size asserts
 - [ ] M3.4 360 Live map: `XNet + XSession` replace `XOnline OG + GAME_PORT 1000`; voice → GameChat; guard behind `RV360_LIVE` flag (system-link first)
@@ -80,6 +92,8 @@ Files: `Xbox/Src/main.h/.cpp`, `gameloop.h/.cpp`, `timing.h/.cpp`, `XBUtil.cpp T
 - Acceptance: cold boot → front-end → load one track offline, no network required.
 
 ## M8 — Bring-up & validation (needs XDK + Xenia/RGH)
+- [x] Fresh offline release object build, normal link, XEX packaging, and image-header inspection
+- [ ] Emulator/hardware boot; title-screen rendering and first race
 - [ ] XDK project from `revolt_xbox.dsw`/`revolt_src.dsp` file lists; `/W3`, no `/GX`, PPC-safe warnings-as-errors pass on game code
 - [ ] Boot checklist: menu → single race (2 cars, 1 lap) → finish → no crash; log `BKK_fopen` misses
 - [ ] Perf: buckets batched, texture tiling validated, 30fps floor at 720p; voice/Live explicitly deferred
@@ -114,3 +128,5 @@ Files: `Xbox/Src/main.h/.cpp`, `gameloop.h/.cpp`, `timing.h/.cpp`, `XBUtil.cpp T
 - 2026-09-14: `dx.cpp` now compiles with 360 presentation/viewport/gamma/state handling and initializes `dx360_backend`. Legacy `network.cpp` is explicitly excluded on 360; `network360_stub.cpp` supplies offline single-player globals/functions. Multiplayer remains a separate system-link rewrite.
 - 2026-09-14: **Full Xenon translation-unit sweep passes: 132/132 `rvsource/Xbox/Src/*.cpp` units.** `bash rv360/check_xenon.sh rvsource/Xbox/Src/*.cpp` exits 0. Live/content/statistics UI exclusions are explicit offline-target decisions; they are not claimed as runtime Live features.
 - 2026-09-14: XBFont now has a compileable 360 text-measurement interim implementation; XDX remains explicitly offline-tool excluded. Remaining M8 blocker is linking a real XEX and booting it on Xenia/RGH/hardware.
+- 2026-09-14: First fresh offline image build succeeded: 136 objects, zero linker errors, and successful `imagexex` packaging. Removed obsolete forced debug symbols and exporter calls from the 360 target instead of inventing their ABI; used `_controlfp` instead of a fake `_control87` implementation. XEX inspection reports a title module at base `0x82000000` with XDK 7645 imports. Runtime testing is still outstanding.
+- 2026-09-14: Added `RGH_TEST.md` and prepared `build/rgh-current/` as the console handoff. The first external validation target is boot/title/menu, not gameplay; runtime results will drive the next fixes.

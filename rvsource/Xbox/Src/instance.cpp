@@ -1688,7 +1688,7 @@ void LoadInstanceModels(void)
         // get resource pointers from world resource bundle
         if (World.m_pXBR != NULL)
             LoadModelGPU(buf, InstanceModels[i].Models, MAX_INSTANCE_LOD, World.m_pXBR);
-#ifdef SHIPPING
+#if defined(SHIPPING) || defined(_XBOX360)
 // Shipping version does not need exporter code.
 #else
         else

@@ -35,6 +35,10 @@ DWORD dwLocalPlayerCount = 1;
 BYTE g_bInvitedByFriend = 0;
 LONG g_lMatchmakingLevelNum = -1;
 const ZERO_UNION g_Zero = { 0 };
+RESTART_DATA RestartData;
+
+void SetSendMsgHeader(MSG_TYPE) {}
+void SetSendMsgHeaderExt(MSG_TYPE_EXT) {}
 
 bool InitNetwork(void) { return true; }
 void KillNetwork(void) {}

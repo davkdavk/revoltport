@@ -67,6 +67,7 @@ rvsource/**/*.plg
 rvsource/**/*.scc
 
 # Local compiler output
+/build/
 *.obj
 *.pdb
 *.ilk

@@ -14,7 +14,13 @@ fi
 command -v wine >/dev/null
 command -v winepath >/dev/null
 
-out=$(mktemp -d "${TMPDIR:-/tmp}/revolt-xenon.XXXXXX")
+if [[ -n ${RV360_OBJECT_DIR:-} ]]; then
+    out=$RV360_OBJECT_DIR
+    # Refuse reuse: stale or duplicate objects must never enter a link.
+    mkdir "$out"
+else
+    out=$(mktemp -d "${TMPDIR:-/tmp}/revolt-xenon.XXXXXX")
+fi
 printf 'Compile logs and objects: %s\n' "$out"
 flags=(/nologo /c /W3 /X /D_XBOX /D_M_PPC /D_XBOX360)
 if [[ ${RV360_DEBUG:-0} == 1 ]]; then
@@ -36,6 +42,7 @@ if [[ $# == 0 ]]; then
 fi
 failed=0
 number=0
+objects=()
 for source in "$@"; do
     number=$((number + 1))
     if [[ "$source" != /* ]]; then source="$root/$source"; fi
@@ -50,6 +57,7 @@ for source in "$@"; do
     log="$out/$number-$(basename "$source").log"
     if wine "$compiler" "${flags[@]}" "$source_win" "/Fo$object_win" >"$log" 2>&1; then
         if [[ -s "$object" ]]; then
+            objects+=("\"$object_win\"")
             printf 'PASS %s\n' "${source#"$root/"}"
             continue
         fi
@@ -58,4 +66,5 @@ for source in "$@"; do
     failed=$((failed + 1))
 done
 printf '%s checked; %s failed.\n' "$number" "$failed"
-[[ $failed == 0 ]]
+if [[ $failed != 0 ]]; then exit 1; fi
+printf '%s\n' "${objects[@]}" > "$out/objects.rsp"
