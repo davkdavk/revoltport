@@ -38,6 +38,10 @@ rvsource/*.DOC
 rvsource/*.rc
 rvsource/*.ico
 rvsource/*.tsk
+rvsource/CARINFO.TXT
+rvsource/Resource.h
+rvsource/dirs
+rvsource/Xbox/dirs
 rvsource/*.001
 rvsource/*.002
 rvsource/**/*.xpr
