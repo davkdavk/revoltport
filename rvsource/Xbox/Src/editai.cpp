@@ -2140,8 +2140,13 @@ bool CreateRacingLineFromGhostData(void)
     int     cPath, cNode;
 
 #ifndef XBOX_NOT_YET_IMPLEMENTED
+#ifdef _XBOX360
+    // Box() message helper was removed (see DumpMessage in main.h);
+    // editor auto-proceeds on 360.
+#else
     if (IDNO == Box("Create Racing Line From Ghost Car", "Are you sure?", MB_YESNO))
         return FALSE;
+#endif
 #endif
     if (!gbValidGhostPath)
         return FALSE;
