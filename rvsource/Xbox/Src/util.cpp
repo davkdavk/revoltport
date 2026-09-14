@@ -126,7 +126,18 @@ void HSVtoRGB(REAL h, REAL s, REAL v, REAL *r, REAL *g, REAL *b )
 
 //$TODO: maybe wrap this stuff in a #ifdef so it gets removed from shipping version.
 
-__forceinline ULONGLONG RDTSC()  { __asm rdtsc }
+__forceinline ULONGLONG RDTSC()
+{
+#ifdef _XBOX360
+    // No rdtsc on Xenon; QueryPerformanceCounter ticks match the
+    // QueryPerformanceFrequency-based calibration in FrameRate_Init.
+    LARGE_INTEGER c;
+    QueryPerformanceCounter(&c);
+    return (ULONGLONG)c.QuadPart;
+#else
+    __asm rdtsc
+#endif
+}
 
 //****************************
 // FRAMERATE CALCULATION CODE

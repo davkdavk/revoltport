@@ -2281,8 +2281,12 @@ bool ReadAllCarPackagesMultiple()
     ////////////////////////////////////////////////////////////
     // Load in the downloaded cars
     //
-    iCar = CARID_NTYPES; 
-      
+    iCar = CARID_NTYPES;
+
+#ifdef _XBOX360
+    // Downloaded-car enumeration uses OG DLC APIs; deferred to the XContent
+    // rewrite (M7). Shipped cars enumerate above.
+#else
     // only look for cars
     hFind = XFindFirstContent("T:\\", CONTENT_CAR_FLAG, &Finddata);
     if(hFind != INVALID_HANDLE_VALUE)
@@ -2357,8 +2361,9 @@ bool ReadAllCarPackagesMultiple()
         }
         while( XFindNextContent(hFind, &Finddata) );
 
-        XFindClose(hFind); 
+        XFindClose(hFind);
     }
+#endif // _XBOX360 (downloaded-car enumeration deferred)
 
     free(CarList);
     CarList = NULL;
@@ -2402,6 +2407,9 @@ bool ReadAllCarKeysMultiple()
     // Load in the downloaded cars
     //
       
+#ifdef _XBOX360
+    // Downloaded car-key enumeration deferred like downloaded cars (M7).
+#else
     // only look for cars keys
     hFind = XFindFirstContent("T:\\", CONTENT_CARKEY_FLAG, &Finddata);
     if(hFind != INVALID_HANDLE_VALUE)
@@ -2455,7 +2463,8 @@ bool ReadAllCarKeysMultiple()
 
         XFindClose(hFind);
     }
-    return TRUE; 
+#endif // _XBOX360 (downloaded car-key enumeration deferred)
+    return TRUE;
 }
 
 // $MD: old code
