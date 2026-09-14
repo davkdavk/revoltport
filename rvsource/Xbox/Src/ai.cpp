@@ -4222,8 +4222,9 @@ void AI_RippleHandler(OBJECT *obj)
     ripple->WaterTableCurrent = ripple->WaterTableLast;
     ripple->WaterTableLast = wc;
 
-#ifndef XBOX_NOT_YET_IMPLEMENTED
-// lock source texture
+#if !defined(XBOX_NOT_YET_IMPLEMENTED) && !defined(_XBOX360)
+// lock source texture (DDraw surface; 360 dynamic-texture equivalent deferred
+// with the water effect rewrite)
 
     ddsd2.dwSize = sizeof(ddsd2);
 
